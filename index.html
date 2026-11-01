@@ -2,739 +2,945 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<title>Agar Clone Online</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, maximum-scale=1">
+<title>Agar Clone · Fix Bug</title>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html, body { overflow:hidden; background:#0a0a0f; font-family:'Segoe UI', sans-serif; }
-  canvas#c { display:block; cursor:crosshair; }
-
-  #menu {
-    position:fixed; inset:0; background:radial-gradient(circle, #1a1a2a, #0a0a0f);
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    z-index:100; color:#fff; gap:16px; padding:20px;
-  }
-  #menu h1 { font-size:48px; letter-spacing:6px; color:#4ade80;
-    text-shadow:0 0 25px rgba(74,222,128,0.6); }
-  #menu p.sub { color:#888; font-size:13px; margin-bottom:8px; }
-  #menu input {
-    padding:12px 18px; font-size:17px; border-radius:10px;
-    border:2px solid #4ade80; background:#1a1a2a; color:#fff; outline:none;
-    width:300px; text-align:center; transition:box-shadow .2s;
-  }
-  #menu input:focus { box-shadow:0 0 18px rgba(74,222,128,0.5); }
-  #codeInput { text-transform:uppercase; letter-spacing:4px; font-weight:bold; }
-  #menu button {
-    padding:12px 26px; font-size:16px; border-radius:10px; border:none;
-    background:#4ade80; color:#0a0a0f; font-weight:bold; cursor:pointer;
-    transition:transform .15s, box-shadow .15s;
-  }
-  #menu button:hover { transform:scale(1.05); box-shadow:0 0 22px rgba(74,222,128,0.7); }
-  #menu button.alt { background:#2a2a3a; color:#4ade80; border:2px solid #4ade80; }
-  .divider { color:#555; font-size:12px; margin:10px 0; }
-  .join-row { display:flex; gap:8px; }
-  #menuStatus { color:#4ade80; font-size:14px; min-height:20px; text-align:center; }
-
-  #hud { position:fixed; top:15px; left:15px; color:#fff; font-size:15px;
-    pointer-events:none; text-shadow:0 2px 6px #000; z-index:10; display:none; }
-  #hud .stat { margin-bottom:5px; }
-  #hud .stat span { color:#4ade80; font-weight:bold; }
-
-  #ranking {
-    position:fixed; top:15px; right:15px; width:240px;
-    background:rgba(10,10,20,0.85); border:1px solid rgba(74,222,128,0.35);
-    border-radius:12px; padding:12px; color:#fff; backdrop-filter:blur(10px);
-    z-index:10; font-size:13px; box-shadow:0 4px 25px rgba(0,0,0,0.5); display:none;
-  }
-  #ranking h3 { margin-bottom:10px; color:#4ade80; font-size:12px; letter-spacing:2px; }
-  #ranking ol { list-style:none; }
-  #ranking li { padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.06);
-    display:flex; justify-content:space-between; gap:8px; }
-  #ranking li.you { color:#4ade80; font-weight:bold; }
-  #ranking li .name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
-  #ranking li .mass { color:#aaa; font-variant-numeric:tabular-nums; }
-  #ranking li.you .mass { color:#4ade80; }
-
-  #minimap { position:fixed; bottom:15px; right:15px; width:170px; height:170px;
-    border-radius:12px; background:rgba(10,10,20,0.8);
-    border:1px solid rgba(74,222,128,0.35); z-index:10;
-    box-shadow:0 4px 25px rgba(0,0,0,0.5); display:none; }
-
-  #toast { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
-    background:rgba(0,0,0,0.9); color:#4ade80; padding:18px 32px;
-    border-radius:12px; font-size:18px; font-weight:bold; z-index:200;
-    opacity:0; transition:opacity .3s; pointer-events:none; text-align:center;
-    border:2px solid #4ade80; }
-  #toast.show { opacity:1; }
-
-  #roomBadge { position:fixed; bottom:15px; left:15px;
-    background:rgba(10,10,20,0.85); border:1px solid rgba(74,222,128,0.35);
-    padding:10px 16px; border-radius:10px; color:#4ade80; font-size:14px;
-    z-index:10; display:none; font-weight:bold; letter-spacing:2px; }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{overflow:hidden;background:#0a0a0f;font-family:'Segoe UI',sans-serif;user-select:none}
+  canvas#c{display:block;cursor:crosshair;touch-action:none}
+  #menu{position:fixed;inset:0;background:radial-gradient(circle,#1a1a2a,#0a0a0f);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;color:#fff;gap:12px;padding:16px;overflow-y:auto}
+  #menu h1{font-size:42px;letter-spacing:5px;color:#4ade80;text-shadow:0 0 25px rgba(74,222,128,.6)}
+  #menu p.sub{color:#888;font-size:12px}
+  #menu input{padding:11px 16px;font-size:16px;border-radius:10px;border:2px solid #4ade80;background:#1a1a2a;color:#fff;outline:none;width:280px;text-align:center}
+  #menu input:focus{box-shadow:0 0 18px rgba(74,222,128,.5)}
+  #skinUrl{border-color:#60a5fa!important;font-size:13px}
+  .skins-title{color:#4ade80;font-size:12px;letter-spacing:2px;margin-top:6px}
+  .color-row,.pattern-row{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;max-width:340px}
+  .color-dot{width:30px;height:30px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .15s}
+  .color-dot.selected{border-color:#fff;box-shadow:0 0 14px rgba(255,255,255,.7)}
+  .pattern-btn{padding:6px 12px;border-radius:8px;border:2px solid #333;background:#1a1a2a;color:#ccc;cursor:pointer;font-size:12px}
+  .pattern-btn.selected{border-color:#4ade80;color:#4ade80;background:#0f1a12}
+  #playBtn{margin-top:12px;padding:15px 55px;font-size:19px;border-radius:12px;border:none;background:#4ade80;color:#0a0a0f;font-weight:bold;cursor:pointer;letter-spacing:2px}
+  #playBtn:hover{transform:scale(1.05);box-shadow:0 0 25px rgba(74,222,128,.7)}
+  #hud{position:fixed;top:12px;left:12px;color:#fff;font-size:14px;pointer-events:none;text-shadow:0 2px 6px #000;z-index:10;display:none}
+  #hud .stat{margin-bottom:4px}
+  #hud .stat span{color:#4ade80;font-weight:bold}
+  #claudeHud{color:#fbbf24!important;margin-top:8px;padding-top:8px;border-top:1px solid rgba(251,191,36,.3)}
+  #claudeHud span{color:#fbbf24!important}
+  #claudeMood.ally{color:#4ade80!important}
+  #ranking{position:fixed;top:12px;right:12px;width:220px;background:rgba(10,10,20,.85);border:1px solid rgba(74,222,128,.35);border-radius:12px;padding:10px;color:#fff;backdrop-filter:blur(10px);z-index:10;font-size:12px;display:none}
+  #ranking h3{margin-bottom:8px;color:#4ade80;font-size:11px;letter-spacing:2px}
+  #ranking ol{list-style:none}
+  #ranking li{padding:4px 0;border-bottom:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;gap:6px}
+  #ranking li.you{color:#4ade80;font-weight:bold}
+  #ranking li.claude{color:#fbbf24;font-weight:bold}
+  #ranking li.claude.ally{color:#4ade80}
+  #ranking .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+  #minimap{position:fixed;bottom:12px;left:12px;width:150px;height:150px;border-radius:12px;background:rgba(10,10,20,.8);border:1px solid rgba(74,222,128,.35);z-index:9;display:none}
+  #toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.92);color:#4ade80;padding:14px 26px;border-radius:12px;font-size:15px;font-weight:bold;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;text-align:center;border:2px solid #4ade80;max-width:85vw}
+  #toast.show{opacity:1}
+  #toast.claude{color:#fbbf24;border-color:#fbbf24}
+  #toast.ally{color:#4ade80;border-color:#4ade80;background:rgba(16,50,24,.95)}
+  #mobileControls{position:fixed;inset:0;pointer-events:none;display:none;z-index:50}
+  #mobileControls.on{display:block}
+  .mob-btn{position:absolute;border-radius:50%;background:rgba(74,222,128,.85);color:#0a0a0f;border:none;font-weight:bold;pointer-events:auto;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 15px rgba(0,0,0,.5)}
+  .mob-btn:active{transform:scale(.9)}
+  #splitBtn{width:72px;height:72px;right:16px;bottom:16px;font-size:30px}
+  #ejectBtn{width:58px;height:58px;right:23px;bottom:98px;font-size:22px;background:rgba(96,165,250,.85)}
+  #emojiBtn{width:50px;height:50px;right:27px;bottom:166px;font-size:20px;background:rgba(251,191,36,.85)}
+  @media(max-width:700px){#ranking{width:150px;font-size:10px;padding:8px}#ranking h3{font-size:9px}#minimap{width:110px;height:110px}#hud{font-size:12px}#menu h1{font-size:32px}#toast{font-size:13px;padding:12px 20px}}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
-
 <div id="menu">
   <h1>AGAR CLONE</h1>
-  <p class="sub">Online · Bots · Minimapa · Ranking</p>
+  <p class="sub">Claude 👑 aprende y se alía contigo · Bots · Virus · 2000 comidas</p>
   <input id="nameInput" type="text" placeholder="Tu nombre" maxlength="14" value="Jugador">
-  <button id="soloBtn">🎮 Jugar Solo</button>
-  <div class="divider">— o jugar online —</div>
-  <button id="hostBtn" class="alt">➕ Crear Sala</button>
-  <div class="join-row">
-    <input id="codeInput" type="text" placeholder="CÓDIGO" maxlength="6">
-    <button id="joinBtn" class="alt">🔗 Unirse</button>
-  </div>
-  <p id="menuStatus"></p>
+  <div class="skins-title">COLOR</div>
+  <div id="colorRow" class="color-row"></div>
+  <div class="skins-title">PATRÓN</div>
+  <div id="patternRow" class="pattern-row"></div>
+  <input id="skinUrl" type="url" placeholder="URL imagen (opcional)">
+  <button id="playBtn">▶ JUGAR</button>
 </div>
-
 <div id="hud">
   <div class="stat">Puntos: <span id="score">0</span></div>
   <div class="stat">Masa: <span id="mass">0</span></div>
-  <div class="stat">Jugadores: <span id="pcount">1</span></div>
+  <div class="stat">Células: <span id="cells">1/16</span></div>
+  <div class="stat" id="claudeHud">👑 Claude: <span id="claudeMood">Neutral</span><br><small style="color:#888;font-size:11px;">Confianza: <span id="claudeTrust">50</span>/100</small></div>
 </div>
-
-<div id="ranking">
-  <h3>🏆 RANKING EN VIVO</h3>
-  <ol id="rankList"></ol>
-</div>
-
+<div id="ranking"><h3>🏆 RANKING</h3><ol id="rankList"></ol></div>
 <canvas id="minimap"></canvas>
+<div id="mobileControls">
+  <button id="splitBtn" class="mob-btn">⚡</button>
+  <button id="ejectBtn" class="mob-btn">💧</button>
+  <button id="emojiBtn" class="mob-btn">😀</button>
+</div>
 <div id="toast"></div>
-<div id="roomBadge"></div>
 
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
-// ================= CONFIG =================
-const WORLD = 7000;
-const FOOD_COUNT = 700;
-const BOT_COUNT = 30;
-const NET_INTERVAL = 1000 / 18;
-const EAT_RATIO = 1.15;
-const PEER_PREFIX = 'agarx2-';
+// ============ CONFIG ============
+const WORLD=6000,FOOD_COUNT=2000,BOT_COUNT=35,VIRUS_COUNT=20,MAX_CELLS=16,MAX_BOT_CELLS=6;
+const MIN_SPLIT_R=22,MIN_EJECT_R=26,EJECT_MASS=22,MERGE_COOLDOWN=22,EAT_RATIO=1.15;
+const SPAWN_PROTECTION=4,DECAY_RATE=0.002,VIRUS_R=55,FOOD_GRID=200,MAX_MASS=250000;
+const EMOJIS=['😀','😎','😂','😡','💀','🎉'],CLAUDE_ID='claude',CLAUDE_RESPAWN_COOLDOWN=15;
 
-// ================= CANVAS =================
-const canvas = document.getElementById('c');
-const ctx = canvas.getContext('2d');
-const miniCanvas = document.getElementById('minimap');
-const miniCtx = miniCanvas.getContext('2d');
-let W, H;
-function resize(){
-  W = canvas.width = innerWidth;
-  H = canvas.height = innerHeight;
-  miniCanvas.width = 170; miniCanvas.height = 170;
-}
-addEventListener('resize', resize); resize();
+const claudeMemory={playerSplitCount:0,playerEjectCount:0,playerChaseTime:0,playerNearTime:0,playerAggression:.5,trust:50,isAlly:false,allySince:0,lastInteraction:0,lastFed:0,lastAttacked:0,lastEject:0,chatCooldown:0,totalPlayTime:0};
+function resetClaudeMemory(){Object.assign(claudeMemory,{playerSplitCount:0,playerEjectCount:0,playerChaseTime:0,playerNearTime:0,playerAggression:.5,trust:50,isAlly:false,allySince:0,lastInteraction:0,lastFed:0,lastAttacked:0,lastEject:0,chatCooldown:0,totalPlayTime:0});}
 
-// ================= INPUT =================
-const mouse = { x: innerWidth/2, y: innerHeight/2 };
-canvas.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-canvas.addEventListener('touchmove', e => {
-  const t = e.touches[0]; mouse.x = t.clientX; mouse.y = t.clientY; e.preventDefault();
-}, { passive:false });
+// ============ CANVAS ============
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const miniCanvas=document.getElementById('minimap'),miniCtx=miniCanvas.getContext('2d');
+let W,H;
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;miniCanvas.width=150;miniCanvas.height=150;}
+addEventListener('resize',resize);resize();
 
-const rand = (a,b) => Math.random()*(b-a)+a;
-const lerp = (a,b,t) => a + (b-a)*t;
-const dist = (a,b) => Math.hypot(a.x-b.x, a.y-b.y);
+// ============ INPUT ============
+const mouse={x:innerWidth/2,y:innerHeight/2};
+canvas.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;});
+canvas.addEventListener('touchstart',e=>{if(e.touches[0]){mouse.x=e.touches[0].clientX;mouse.y=e.touches[0].clientY;}e.preventDefault();},{passive:false});
+canvas.addEventListener('touchmove',e=>{if(e.touches[0]){mouse.x=e.touches[0].clientX;mouse.y=e.touches[0].clientY;}e.preventDefault();},{passive:false});
 
-const BOT_NAMES = ['xX_Dark_Xx','NoobSlayer','RayoVerde','ElTronco','KillerPro','ShadowFury',
-  'DragonFire','Fenix','NinjaPro','Tornado','CobraKai','LoboSol','TigreTop','Serpiente',
-  'Blaze','StormX','Vortex','Ghost','Reaper','Sniper','Toxic','Legend','Boss','Rey','Titan',
-  'Omega','ZeroCool','Neo','MaxPower','Calamar','Pulpo','Shark','Rex','Nova','Phoenix',
-  'Zeus','Hades','Ares','Thor','Loki','Bolt','Flash','Speed','Ultra','Mega','Turbo','Samurai',
-  'Ronin','Viper','Wolf','Frost','Inferno','Zombie','Kraken'];
-const randomBotName = () => BOT_NAMES[Math.floor(Math.random()*BOT_NAMES.length)] + Math.floor(rand(1,999));
+// ============ UTILS ============
+const rand=(a,b)=>Math.random()*(b-a)+a,lerp=(a,b,t)=>a+(b-a)*t;
+const dist=(a,b)=>{const dx=a.x-b.x,dy=a.y-b.y;return Math.sqrt(dx*dx+dy*dy);};
+const now=()=>performance.now()/1000;
+const isMobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)||'ontouchstart' in window;
 
-// ================= BLOB =================
-class Blob {
-  constructor(x, y, r, color, name, id){
-    this.x = x; this.y = y; this.r = r; this.color = color;
-    this.name = name; this.id = id || 'b'+Math.random();
-    this.vx = 0; this.vy = 0;
-    this.targetX = x; this.targetY = y;
-    this.prevR = r;
+// ============ FOOD GRID ============
+const foodGrid=new Map();
+function buildFoodGrid(){
+  foodGrid.clear();
+  for(const f of foods){
+    const k=((f.x/FOOD_GRID)|0)+','+((f.y/FOOD_GRID)|0);
+    let a=foodGrid.get(k);if(!a){a=[];foodGrid.set(k,a);}a.push(f);
   }
-  get mass(){ return this.r * this.r; }
-  update(dt){
-    const dx = this.targetX - this.x, dy = this.targetY - this.y;
-    const d = Math.hypot(dx, dy);
-    const speed = Math.max(70, 520 / Math.pow(this.r, 0.42));
-    if (d > 2) {
-      const dvx = (dx/d) * speed, dvy = (dy/d) * speed;
-      const k = Math.min(1, dt * 12);
-      this.vx = lerp(this.vx, dvx, k);
-      this.vy = lerp(this.vy, dvy, k);
-    } else {
-      const damp = Math.pow(0.0001, dt);
-      this.vx *= damp; this.vy *= damp;
+}
+function nearestFoodInGrid(x,y,maxR){
+  const gx=(x/FOOD_GRID)|0,gy=(y/FOOD_GRID)|0,range=Math.ceil(maxR/FOOD_GRID),maxR2=maxR*maxR;
+  let best=null,bestD2=maxR2;
+  for(let dx=-range;dx<=range;dx++)for(let dy=-range;dy<=range;dy++){
+    const arr=foodGrid.get((gx+dx)+','+(gy+dy));if(!arr)continue;
+    for(const f of arr){const fx=f.x-x,fy=f.y-y,d2=fx*fx+fy*fy;if(d2<bestD2){bestD2=d2;best=f;}}
+  }
+  return best;
+}
+function eatFoodsForCell(cell){
+  const gx=(cell.x/FOOD_GRID)|0,gy=(cell.y/FOOD_GRID)|0,r2=cell.r*cell.r;
+  const range=Math.min(Math.ceil(cell.r/FOOD_GRID),5); // Límite para no colapsar si es gigante
+  for(let dx=-range;dx<=range;dx++)for(let dy=-range;dy<=range;dy++){
+    const arr=foodGrid.get((gx+dx)+','+(gy+dy));if(!arr)continue;
+    for(let i=arr.length-1;i>=0;i--){
+      const f=arr[i],fx=f.x-cell.x,fy=f.y-cell.y;
+      if(fx*fx+fy*fy<r2){cell.setFromMass(cell.mass+f.r*f.r*1.8);if(cell.ownerId==='player')player.score++;f.eaten=true;arr.splice(i,1);}
     }
-    this.x += this.vx * dt; this.y += this.vy * dt;
-    this.x = Math.max(this.r, Math.min(WORLD - this.r, this.x));
-    this.y = Math.max(this.r, Math.min(WORLD - this.r, this.y));
   }
 }
 
-// ================= ESTADO =================
-let mode = 'menu';               // 'solo' | 'host' | 'client'
-let myId = 'h';
-let state = { players: new Map(), bots: new Map(), foods: new Map() };
-let cam = { x: WORLD/2, y: WORLD/2 };
-let last = 0, lastNet = 0, lastHud = 0;
-let myPlayer = null;             // solo/host reference
-let score = 0, bestMass = 0;
+// ============ SKINS ============
+const COLORS=['#4ade80','#60a5fa','#f472b6','#fbbf24','#a78bfa','#fb7185','#34d399','#22d3ee','#f59e0b','#ec4899','#8b5cf6','#ef4444'];
+const PATTERNS=['solid','gradient','ring','glow'];
+const PATTERN_LABELS={solid:'Sólido',gradient:'Degradado',ring:'Anillo',glow:'Brillo'};
+let selectedColor=COLORS[0],selectedPattern='solid',customSkinImage=null;
 
-// IDs
-let foodIdCounter = 1;
-let botIdCounter = 1;
-let nextClientId = 1;
-
-// Net host
-let peer = null;
-let clientConns = new Map();     // shortId -> conn
-let connToShort = new Map();     // conn.peer -> shortId
-let foodAdds = [], foodRemoves = [];
-
-// Net client
-let serverConn = null;
-let myShortId = null;
-
-// ================= HELPERS =================
-function spawnFood(){
-  const f = {
-    id: foodIdCounter++,
-    x: rand(20, WORLD-20), y: rand(20, WORLD-20),
-    r: rand(4, 8),
-    color: `hsl(${Math.random()*360}, 75%, 62%)`
-  };
-  state.foods.set(f.id, f);
-  if (mode === 'host') foodAdds.push({ i:f.id, x:Math.round(f.x), y:Math.round(f.y), r:Math.round(f.r*10)/10, c:f.color });
-  return f;
+function shadeColor(hex,amt){
+  let c=hex.replace('#','');if(c.length===3)c=c.split('').map(x=>x+x).join('');
+  const n=parseInt(c,16);
+  const r=Math.max(0,Math.min(255,(n>>16)+amt)),g=Math.max(0,Math.min(255,((n>>8)&0xFF)+amt)),b=Math.max(0,Math.min(255,(n&0xFF)+amt));
+  return '#'+((r<<16)|(g<<8)|b).toString(16).padStart(6,'0');
 }
-function spawnBot(){
-  const b = new Blob(
-    rand(100, WORLD-100), rand(100, WORLD-100),
-    rand(18, 55), `hsl(${Math.random()*360}, 72%, 55%)`,
-    randomBotName(), 'b' + (botIdCounter++)
-  );
-  state.bots.set(b.id, b);
-  return b;
+function buildSkinPicker(){
+  const cr=document.getElementById('colorRow');
+  COLORS.forEach(c=>{const d=document.createElement('div');d.className='color-dot'+(c===selectedColor?' selected':'');d.style.background=c;d.dataset.color=c;
+    d.onclick=()=>{selectedColor=c;document.querySelectorAll('.color-dot').forEach(x=>x.classList.toggle('selected',x.dataset.color===c));};
+    cr.appendChild(d);});
+  const pr=document.getElementById('patternRow');
+  PATTERNS.forEach(p=>{const b=document.createElement('button');b.className='pattern-btn'+(p===selectedPattern?' selected':'');b.textContent=PATTERN_LABELS[p];b.dataset.pattern=p;
+    b.onclick=()=>{selectedPattern=p;document.querySelectorAll('.pattern-btn').forEach(x=>x.classList.toggle('selected',x.dataset.pattern===p));};
+    pr.appendChild(b);});
 }
-function removeFood(id){
-  state.foods.delete(id);
-  if (mode === 'host') foodRemoves.push(id);
-}
-function mouseToWorld(){
-  return { x: cam.x + (mouse.x - W/2), y: cam.y + (mouse.y - H/2) };
-}
+buildSkinPicker();
+document.getElementById('skinUrl').addEventListener('change',e=>{
+  const url=e.target.value.trim();if(!url){customSkinImage=null;return;}
+  const img=new Image();img.crossOrigin='anonymous';
+  img.onload=()=>{customSkinImage=img;};img.onerror=()=>{customSkinImage=null;};img.src=url;
+});
 
-// ================= SIMULACIÓN (solo/host) =================
-function serverTick(dt){
-  // Jugador local (host/solo)
-  myPlayer.targetX = mouseToWorld().x;
-  myPlayer.targetY = mouseToWorld().y;
-  myPlayer.update(dt);
+// ============ NAMES ============
+const BOT_NAMES=['xX_Dark_Xx','NoobSlayer','RayoVerde','ElTronco','KillerPro','ShadowFury','DragonFire','Fenix','NinjaPro','Tornado','CobraKai','LoboSol','TigreTop','Serpiente','Blaze','StormX','Vortex','Ghost','Reaper','Sniper','Toxic','Legend','Boss','Rey','Titan','Omega','ZeroCool','Neo','MaxPower','Calamar','Pulpo','Shark','Rex','Nova','Phoenix','Zeus','Hades','Ares','Thor','Loki','Bolt','Flash','Speed','Ultra','Mega','Turbo','Samurai','Ronin','Viper','Wolf','Frost','Inferno','Zombie','Kraken'];
+const randomBotName=()=>BOT_NAMES[Math.floor(Math.random()*BOT_NAMES.length)]+Math.floor(rand(1,999));
+const randomPattern=()=>PATTERNS[Math.floor(Math.random()*PATTERNS.length)];
 
-  // Blobs de clientes
-  for (const [id, conn] of clientConns) {
-    const b = state.players.get(id);
-    if (b) b.update(dt);
+// ============ CELL ============
+class Cell{
+  constructor(x,y,r,color,name,pattern,ownerId){
+    this.x=x;this.y=y;this.r=r;this.vx=0;this.vy=0;
+    this.color=color;this.name=name;this.pattern=pattern;this.ownerId=ownerId;
+    this.mergeTime=0;this.wobbleSeed=Math.random()*100;
   }
+  get mass(){return this.r*this.r;}
+  setFromMass(m){this.r=Math.sqrt(Math.min(MAX_MASS,Math.max(1,m)));} // Límite de masa
+}
 
-  // Bots con IA
-  for (const b of state.bots.values()) {
-    let tx = b.x, ty = b.y, fleeing = false;
-    for (const other of state.players.values()) {
-      const d = dist(other, b);
-      if (d < b.r + other.r + 220 && other.mass > b.mass * EAT_RATIO) {
-        tx = b.x + (b.x - other.x); ty = b.y + (b.y - other.y); fleeing = true; break;
-      }
-    }
-    if (!fleeing) {
-      let prey = null, preyD = Infinity;
-      for (const other of state.players.values()) {
-        const d = dist(other, b);
-        if (d < 500 && b.mass > other.mass * EAT_RATIO && d < preyD) { prey = other; preyD = d; }
-      }
-      if (prey) { tx = prey.x; ty = prey.y; }
-      else {
-        let best = null, bestD = Infinity;
-        for (const f of state.foods.values()) {
-          const d = (f.x-b.x)**2 + (f.y-b.y)**2;
-          if (d < bestD) { bestD = d; best = f; }
+// ============ STATE ============
+let player=null,bots=[],foods=[],viruses=[],ejected=[],emojis=[];
+let cam={x:WORLD/2,y:WORLD/2,zoom:1};
+let running=false,lastTime=0,lastHud=0,toastTimer,botIdCounter=1,lastBotCheck=0,claudeRespawnAt=0;
+
+// ============ BOT HELPERS ============
+function getBotCells(botId){const a=[];for(const c of bots)if(c.ownerId===botId)a.push(c);return a;}
+function botCenter(cells){let sx=0,sy=0;for(const c of cells){sx+=c.x;sy+=c.y;}return{x:sx/cells.length,y:sy/cells.length};}
+function getPlayerCenter(){
+  if(!player||!player.cells.length)return{x:0,y:0};
+  return{x:player.cells.reduce((s,c)=>s+c.x,0)/player.cells.length,y:player.cells.reduce((s,c)=>s+c.y,0)/player.cells.length};
+}
+function getPlayerMass(){return player?player.cells.reduce((s,c)=>s+c.mass,0):0;}
+
+function botSplitAway(botId,tx,ty,tSec){
+  const botCells=getBotCells(botId);if(botCells.length>=MAX_BOT_CELLS)return;
+  const newCells=[];
+  for(const cell of botCells){
+    if(botCells.length+newCells.length>=MAX_BOT_CELLS)break;
+    if(cell.r<MIN_SPLIT_R*1.3)continue;
+    cell.setFromMass(cell.mass/2);cell.mergeTime=tSec+MERGE_COOLDOWN;
+    const nc=new Cell(cell.x+1,cell.y+1,cell.r,cell.color,cell.name,cell.pattern,botId);
+    nc.mergeTime=tSec+MERGE_COOLDOWN;
+    const dx=cell.x-tx,dy=cell.y-ty,d=Math.sqrt(dx*dx+dy*dy)||1;
+    nc.vx=dx/d*900;nc.vy=dy/d*900;newCells.push(nc);
+  }
+  bots.push(...newCells);
+}
+function updateBotMerges(dt,tSec){
+  const groups=new Map();
+  for(const c of bots){if(!groups.has(c.ownerId))groups.set(c.ownerId,[]);groups.get(c.ownerId).push(c);}
+  const toRemove=new Set();
+  for(const[,cells]of groups){
+    if(cells.length<2)continue;
+    for(let i=0;i<cells.length;i++){
+      if(toRemove.has(cells[i]))continue;
+      for(let j=i+1;j<cells.length;j++){
+        if(toRemove.has(cells[j]))continue;
+        const a=cells[i],b=cells[j];
+        const dx=a.x-b.x,dy=a.y-b.y,maxR=a.r+b.r;
+        if(dx*dx+dy*dy>maxR*maxR)continue;
+        const d=Math.sqrt(dx*dx+dy*dy)||.001;
+        const canMerge=tSec>=a.mergeTime&&tSec>=b.mergeTime;
+        if(canMerge){
+          if(d<Math.max(a.r,b.r)*.9){
+            const big=a.mass>=b.mass?a:b,small=big===a?b:a;
+            big.setFromMass(big.mass+small.mass);toRemove.add(small);
+            if(small===a)break;
+          }else{
+            const f=200/d,ux=(b.x-a.x)/d,uy=(b.y-a.y)/d;
+            a.x+=ux*f*dt;a.y+=uy*f*dt;b.x-=ux*f*dt;b.y-=uy*f*dt;
+          }
+        }else{
+          const overlap=(a.r+b.r)-d;
+          if(overlap>0){
+            const push=overlap*.5,ux=(b.x-a.x)/d,uy=(b.y-a.y)/d;
+            a.x-=ux*push;a.y-=uy*push;b.x+=ux*push;b.y+=uy*push;
+          }
         }
-        if (best) { tx = best.x; ty = best.y; }
-      }
-    }
-    b.targetX = tx; b.targetY = ty;
-    b.update(dt);
-  }
-
-  // Comida
-  for (const f of [...state.foods.values()]) {
-    let eaten = false;
-    for (const p of state.players.values()) {
-      if (dist(f, p) < p.r) { p.r = Math.sqrt(p.mass + f.r*f.r*1.8); removeFood(f.id); eaten = true; break; }
-    }
-    if (eaten) { spawnFood(); continue; }
-    for (const b of state.bots.values()) {
-      if (dist(f, b) < b.r) { b.r = Math.sqrt(b.mass + f.r*f.r*1.8); removeFood(f.id); spawnFood(); break; }
-    }
-  }
-
-  // Jugadores comen bots / bots comen jugadores
-  for (const [bid, b] of [...state.bots]) {
-    for (const [pid, p] of state.players) {
-      const d = dist(b, p);
-      if (d < p.r && p.mass > b.mass * EAT_RATIO) {
-        p.r = Math.sqrt(p.mass + b.mass);
-        if (pid === 'h') score += Math.round(b.mass/50);
-        state.bots.delete(bid); spawnBot();
-        break;
-      } else if (d < b.r && b.mass > p.mass * EAT_RATIO) {
-        // matar jugador
-        p.r = 30;
-        p.x = rand(WORLD*0.3, WORLD*0.7);
-        p.y = rand(WORLD*0.3, WORLD*0.7);
-        p.vx = p.vy = 0;
-        b.r = Math.sqrt(b.mass + 900);
-        if (pid === 'h') showToast('💀 Te comieron, respawneaste');
-        break;
       }
     }
   }
-
-  // Bots comen bots
-  const botArr = [...state.bots.values()];
-  for (let i=0; i<botArr.length; i++) {
-    for (let j=i+1; j<botArr.length; j++) {
-      const a = botArr[i], b = botArr[j];
-      if (!state.bots.has(a.id) || !state.bots.has(b.id)) continue;
-      const d = dist(a, b);
-      if (d < a.r && a.mass > b.mass * EAT_RATIO) {
-        a.r = Math.sqrt(a.mass + b.mass);
-        state.bots.delete(b.id); spawnBot();
-      } else if (d < b.r && b.mass > a.mass * EAT_RATIO) {
-        b.r = Math.sqrt(b.mass + a.mass);
-        state.bots.delete(a.id); spawnBot();
-        {
- break;
-      }
-    }
+  if(toRemove.size>0)for(let i=bots.length-1;i>=0;i--)if(toRemove.has(bots[i]))bots.splice(i,1);
+}
+function ensureBotCount(tSec){
+  if(tSec-lastBotCheck<1)return;lastBotCheck=tSec;
+  const ids=new Set();
+  for(const c of bots)if(c.ownerId!==CLAUDE_ID)ids.add(c.ownerId);
+  let attempts=0;
+  while(ids.size<BOT_COUNT&&attempts<BOT_COUNT*2){
+    const id='bot'+(botIdCounter++);spawnBot(false,id);ids.add(id);attempts++;
   }
-
-  // Récord
-  if (myPlayer.mass > bestMass) bestMass = myPlayer.mass;
 }
 
-// ================= RENDER =================
-function render(){
-  ctx.fillStyle = '#0a0a0f';
-  ctx.fillRect(0, 0, W, H);
-
-  const gs = 120;
-  ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
-  const sx0 = Math.floor((cam.x - W/2)/gs)*gs;
-  const sy0 = Math.floor((cam.y - H/2)/gs)*gs;
-  for (let wx = sx0; wx < cam.x + W/2 + gs; wx += gs) {
-    const sx = wx - cam.x + W/2;
-    ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx, H); ctx.stroke();
-  }
-  for (let wy = sy0; wy < cam.y + H/2 + gs; wy += gs)    const sy = wy - cam.y + H/2;
-    ctx.beginPath(); ctx.moveTo(0, sy); ctx.lineTo(W, sy); ctx.stroke();
-  }
-
-  ctx.strokeStyle = 'rgba(255,80,80,0.55)'; ctx.lineWidth = 5;
-  ctx.strokeRect(-cam.x + W/2, -cam.y + H/2, WORLD, WORLD);
-
-  // Comida
-  for (const f of state.foods.values()) {
-    const sx = f.x - cam.x + W/2, sy = f.y - cam.y + H/2;
-    if (sx < -20 || sy < -20 || sx > W+20 || sy > H+20) continue;
-    ctx.beginPath(); ctx.arc(sx, sy, f.r, 0, Math.PI*2);
-    ctx.fillStyle = f.color; ctx.fill();
-  }
-
-  // Blobs
-  const all = [...state.players.values(), ...state.bots.values()].sort((a,b) => a.r - b.r);
-  for (const b of all) {
-    const sx = b.x - cam.x + W/2, sy = b.y - cam.y + H/2;
-    if (sx < -b.r-20 || sy < -b.r-20 || sx > W+b.r+20 || sy > H+b.r+20) continue;
-    ctx.beginPath(); ctx.arc(sx, sy, b.r, 0, Math.PI*2);
-    ctx.fillStyle = b.color; ctx.fill();
-    ctx.lineWidth = Math.max(2, b.r*0.06);
-    ctx.strokeStyle = 'rgba(0,0,0,0.45)'; ctx.stroke();
-    if (b.r > 14) {
-      ctx.fillStyle = '#fff';
-      ctx.font = `bold ${Math.max(11, b.r*0.33)}px sans-serif`;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.strokeStyle = 'rgba(0,0,0,0.85)'; ctx.lineWidth = 3;
-      ctx.strokeText(b.name, sx, sy); ctx.fillText(b.name, sx, sy);
-    }
-  }
-
-  drawMinimap();
+// ============ SPAWN ============
+function spawnFood(){
+  foods.push({x:rand(20,WORLD-20),y:rand(20,WORLD-20),r:rand(4,8),color:'hsl('+Math.floor(Math.random()*360)+', 78%, 62%)'});
+}
+function spawnVirus(){viruses.push({x:rand(200,WORLD-200),y:rand(200,WORLD-200),r:VIRUS_R,seed:Math.random()*100});}
+function spawnBot(nearPlayer,forceId){
+  let x,y,r;
+  if(nearPlayer&&player&&player.cells.length>0){
+    const p=player.cells[0],ang=Math.random()*Math.PI*2,rad=rand(200,1000);
+    x=Math.max(100,Math.min(WORLD-100,p.x+Math.cos(ang)*rad));
+    y=Math.max(100,Math.min(WORLD-100,p.y+Math.sin(ang)*rad));
+    r=Math.random()<.5?rand(p.r*.4,p.r*.9):rand(18,55);
+  }else{x=rand(100,WORLD-100);y=rand(100,WORLD-100);r=rand(18,55);}
+  const botId=forceId||('bot'+(botIdCounter++));
+  bots.push(new Cell(x,y,r,'hsl('+Math.floor(Math.random()*360)+', 72%, 55%)',randomBotName(),randomPattern(),botId));
+}
+function spawnClaude(){
+  const p=player&&player.cells.length>0?player.cells[0]:null;
+  let x,y;
+  if(p){const ang=Math.random()*Math.PI*2,rad=rand(500,900);
+    x=Math.max(100,Math.min(WORLD-100,p.x+Math.cos(ang)*rad));
+    y=Math.max(100,Math.min(WORLD-100,p.y+Math.sin(ang)*rad));
+  }else{x=rand(500,WORLD-500);y=rand(500,WORLD-500);}
+  bots.push(new Cell(x,y,45,'#fbbf24','Claude 👑','glow',CLAUDE_ID));
 }
 
-function drawMinimap(){
-  const mw = miniCanvas.width, mh = miniCanvas.height;
-  miniCtx.fillStyle = 'rgba(10,10,20,0.9)';
-  miniCtx.fillRect(0, 0, mw, mh);
-  const sx = mw / WORLD, sy = mh / WORLD;
-
-  for (const b of state.bots.values()) {
-    miniCtx.beginPath();
-    miniCtx.arc(b.x*sx, b.y*sy, Math.max(1, b.r*sx*1.4), 0, Math.PI*2);
-    miniCtx.fillStyle = b.color; miniCtx.fill();
-  }
-  for (const [id, p] of state.players) {
-    miniCtx.beginPath();
-    miniCtx.arc(p.x*sx, p.y*sy, Math.max(2.5, p.r*sx*2.5), 0, Math.PI*2);
-    miniCtx.fillStyle = id === myId || id === 'h' ? '#4ade80' : p.color;
-    miniCtx.fill();
-    miniCtx.strokeStyle = '#fff'; miniCtx.lineWidth = 1.5; miniCtx.stroke();
-  }
-
-  miniCtx.strokeStyle = 'rgba(255,255,255,0.35)'; miniCtx.lineWidth = 1;
-  miniCtx.strokeRect((cam.x-W/2)*sx, (cam.y-H/2)*sy, W*sx, H*sy);
-}
-
-// ================= RANKING / HUD =================
-function updateHUD(){
-  const all = [...state.players.values(), ...state.bots.values()]
-    .sort((a,b) => b.mass - a.mass).slice(0, 10);
-  const list = document.getElementById('rankList');
-  list.innerHTML = '';
-  for (let i = 0; i < all.length; i++) {
-    const e = all[i];
-    const isYou = (mode === 'client' && e.id === myId) || (mode !== 'client' && e === myPlayer);
-    const li = document.createElement('li');
-    if (isYou) li.className = 'you';
-    li.innerHTML = `<span class="name">${i+1}. ${e.name}</span><span class="mass">${Math.round(e.mass)}</span>`;
-    list.appendChild(li);
-  }
-  document.getElementById('pcount').textContent = state.players.size;
-  document.getElementById('score').textContent = score;
-  const me = getMyBlob();
-  if (me) document.getElementById('mass').textContent = Math.round(me.mass);
-}
-
-function getMyBlob(){
-  return mode === 'client' ? state.players.get(myId) : myPlayer;
-}
-
-// ================= TOAST =================
-let toastTimer;
-function showToast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
+// ============ TOAST ============
+function showToast(msg,variant){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='show'+(variant?' '+variant:'');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 1600);
+  toastTimer=setTimeout(()=>{t.className='';},1800);
 }
 
-// ================= LOOP =================
-function loop(now){
-  if (mode === 'menu') return;
-  const dt = Math.min(0.05, (now - last) / 1000);
-  last = now;
-
-  if (mode === 'solo' || mode === 'host') {
-    serverTick(dt);
-    if (mode === 'host' && now - lastNet > NET_INTERVAL) {
-      broadcast();
-      lastNet = now;
-    }
-    // Cámara
-    const k = 1 - Math.pow(0.002, dt);
-    cam.x = lerp(cam.x, myPlayer.x, k);
-    cam.y = lerp(cam.y, myPlayer.y, k);
-  } else if (mode === 'client') {
-    clientTick(dt, now);
+// ============ ACTIONS ============
+function splitPlayer(){
+  if(!player||!running)return;
+  claudeMemory.playerSplitCount++;
+  const t=mouseToWorld(),newCells=[];
+  for(const cell of player.cells){
+    if(player.cells.length+newCells.length>=MAX_CELLS)break;
+    if(cell.r<MIN_SPLIT_R)continue;
+    cell.setFromMass(cell.mass/2);
+    const nc=new Cell(cell.x+1,cell.y+1,cell.r,cell.color,cell.name,cell.pattern,'player');
+    nc.mergeTime=now()+MERGE_COOLDOWN;cell.mergeTime=nc.mergeTime;
+    const dx=t.x-cell.x,dy=t.y-cell.y,d=Math.sqrt(dx*dx+dy*dy)||1;
+    nc.vx=dx/d*900;nc.vy=dy/d*900;newCells.push(nc);
   }
+  player.cells.push(...newCells);
+}
+function ejectPlayer(){
+  if(!player||!running)return;
+  claudeMemory.playerEjectCount++;
+  const t=mouseToWorld();
+  for(const cell of player.cells){
+    if(cell.r<MIN_EJECT_R)continue;
+    const newMass=cell.mass-EJECT_MASS;
+    if(newMass<MIN_EJECT_R*MIN_EJECT_R)continue;
+    cell.setFromMass(newMass);
+    const dx=t.x-cell.x,dy=t.y-cell.y,d=Math.sqrt(dx*dx+dy*dy)||1;
+    ejected.push({x:cell.x+dx/d*cell.r,y:cell.y+dy/d*cell.r,vx:dx/d*700,vy:dy/d*700,r:Math.sqrt(EJECT_MASS),mass:EJECT_MASS,color:cell.color,ownerId:'player'});
+  }
+}
+function sendEmoji(emoji){
+  if(!player||!running||!player.cells.length)return;
+  const c=getPlayerCenter();
+  emojis.push({x:c.x,y:c.y,emoji,age:0,life:1.8});
+}
 
-  render();
+// ============ INIT ============
+function startGame(){
+  const name=(document.getElementById('nameInput').value||'Jugador').trim().slice(0,14)||'Jugador';
+  player={cells:[],name,color:selectedColor,pattern:selectedPattern,spawnProtection:0,score:0,bestMass:0};
+  bots=[];foods=[];viruses=[];ejected=[];emojis=[];botIdCounter=1;claudeRespawnAt=0;lastBotCheck=0;
+  resetClaudeMemory();
+  const startCell=new Cell(WORLD/2,WORLD/2,30,selectedColor,name,selectedPattern,'player');
+  player.cells.push(startCell);player.spawnProtection=now()+SPAWN_PROTECTION;
+  cam.x=startCell.x;cam.y=startCell.y;cam.zoom=1.5;
+  for(let i=0;i<BOT_COUNT;i++)spawnBot(i<BOT_COUNT/2);
+  spawnClaude();
+  for(let i=0;i<FOOD_COUNT;i++)spawnFood();
+  for(let i=0;i<VIRUS_COUNT;i++)spawnVirus();
+  document.getElementById('menu').style.display='none';
+  document.getElementById('hud').style.display='block';
+  document.getElementById('ranking').style.display='block';
+  document.getElementById('minimap').style.display='block';
+  if(isMobile)document.getElementById('mobileControls').classList.add('on');
+  initRankHud();running=true;lastTime=performance.now();lastHud=0;
+  requestAnimationFrame(loop);
+  showToast(isMobile?'📱 Toca para moverte · ⚡ dividir · 💧 eyectar':'🖱 Mouse · ESPACIO=split · W=eyectar · 1-6=emoji');
+}
+function mouseToWorld(){return{x:cam.x+(mouse.x-W/2)/cam.zoom,y:cam.y+(mouse.y-H/2)/cam.zoom};}
 
-  if (now - lastHud > 150) { updateHUD(); lastHud = now; }
-
+// ============ LOOP ============
+function loop(t){
+  if(!running)return;
+  const dt=Math.min(.05,(t-lastTime)/1000);lastTime=t;
+  update(dt);render(t);
+  if(t-lastHud>150){updateHUD();lastHud=t;}
   requestAnimationFrame(loop);
 }
 
-// ================= CLIENT TICK =================
-function clientTick(dt, now){
-  const me = state.players.get(myId);
-  if (me) {
-    // Enviar target al host
-    if (now - lastNet > NET_INTERVAL) {
-      const t = mouseToWorld();
-      if (serverConn && serverConn.open) {
-        serverConn.send({ type: 'target', x: Math.round(t.x), y: Math.round(t.y) });
-      }
-      lastNet = now;
+// ============ CLAUDE MEMORY ============
+function updateClaudeMemory(dt,tSec,center,botCells){
+  if(!player||!player.cells.length)return;
+  claudeMemory.totalPlayTime+=dt;
+  const pCenter=getPlayerCenter(),d=dist(pCenter,center);
+  const playerMass=getPlayerMass(),claudeMass=botCells.reduce((s,c)=>s+c.mass,0);
+  const playerBigger=playerMass>claudeMass*EAT_RATIO;
+  claudeMemory.trust*=Math.pow(.996,dt);
+  if(d<600){
+    claudeMemory.lastInteraction=tSec;claudeMemory.playerNearTime+=dt;
+    let chasing=false;
+    if(playerBigger&&d<400){
+      const pvx=player.cells.reduce((s,c)=>s+c.vx,0)/player.cells.length;
+      const pvy=player.cells.reduce((s,c)=>s+c.vy,0)/player.cells.length;
+      const dx=center.x-pCenter.x,dy=center.y-pCenter.y,dl=Math.sqrt(dx*dx+dy*dy)||1;
+      if((pvx*dx+pvy*dy)/dl>100)chasing=true;
     }
-    // Interpolar posición suavemente
-    const k = 1 - Math.pow(0.001, dt);
-    me.x = lerp(me.x, me.targetX, k);
-    me.y = lerp(me.y, me.targetY, k);
-    me.r = lerp(me.r, me.targetR, k);
-    // Cámara
-    const ck = 1 - Math.pow(0.002, dt);
-    cam.x = lerp(cam.x, me.x, ck);
-    cam.y = lerp(cam.y, me.y, ck);
+    if(chasing){
+      claudeMemory.playerChaseTime+=dt;claudeMemory.trust-=8*dt;
+      if(tSec-claudeMemory.lastAttacked>3)claudeMemory.lastAttacked=tSec;
+    }else claudeMemory.trust+=2*dt;
   }
-  // Interpolar bots
-  const bk = 1 - Math.pow(0.001, dt);
-  for (const b of state.bots.values()) {
-    b.x = lerp(b.x, b.targetX, bk);
-    b.y = lerp(b.y, b.targetY, bk);
-    b.r = lerp(b.r, b.targetR, bk);
+  for(const e of ejected){
+    if(e.ownerId==='player'&&dist(e,center)<350){
+      claudeMemory.trust+=4;e.ownerId='gift';
+      if(tSec-claudeMemory.lastFed>6){showToast('👑 Claude: "¡Gracias por la comida!"','claude');claudeMemory.lastFed=tSec;}
+    }
   }
-  // Interpolar otros jugadores
-  for (const [id, p] of state.players) {
-    if (id === myId) continue;
-    p.x = lerp(p.x, p.targetX, bk);
-    p.y = lerp(p.y, p.targetY, bk);
-    p.r = lerp(p.r, p.targetR, bk);
+  claudeMemory.playerAggression=Math.min(1,claudeMemory.playerSplitCount*.03+claudeMemory.playerChaseTime*.1);
+  claudeMemory.trust=Math.max(0,Math.min(100,claudeMemory.trust));
+  if(!claudeMemory.isAlly&&claudeMemory.trust>=75&&tSec>claudeMemory.lastAttacked+5){
+    claudeMemory.isAlly=true;claudeMemory.allySince=tSec;
+    showToast('🤝 ¡Claude confía en ti! Ahora son aliados','ally');
+  }else if(claudeMemory.isAlly&&claudeMemory.trust<40){
+    claudeMemory.isAlly=false;showToast('💔 Claude rompió la alianza','claude');
   }
-}
-
-// ================= NETWORK: HOST =================
-function broadcast(){
-  if (clientConns.size === 0) { foodAdds = []; foodRemoves = []; return; }
-  const msg = {
-    type: 'state',
-    p: [...state.players.values()].map(b => ({
-      i: b.id, n: b.name, c: b.color,
-      x: Math.round(b.x), y: Math.round(b.y), r: Math.round(b.r*10)/10
-    })),
-    b: [...state.bots.values()].map(b => ({
-      i: b.id, n: b.name, c: b.color,
-      x: Math.round(b.x), y: Math.round(b.y), r: Math.round(b.r*10)/10
-    })),
-    fa: foodAdds,
-    fr: foodRemoves
-  };
-  for (const conn of clientConns.values()) {
-    if (conn.open) conn.send(msg);
-  }
-  foodAdds = []; foodRemoves = [];
-}
-
-function startHost(roomCode){
-  peer = new Peer(PEER_PREFIX + roomCode);
-  peer.on('open', id => {
-    mode = 'host';
-    document.getElementById('menu').style.display = 'none';
-    document.getElementById('hud').style.display = 'block';
-    document.getElementById('ranking').style.display = 'block';
-    document.getElementById('minimap').style.display = 'block';
-    const badge = document.getElementById('roomBadge');
-    badge.style.display = 'block';
-    badge.textContent = '🌐 Sala: ' + roomCode;
-    initHostWorld();
-    last = performance.now();
-    requestAnimationFrame(loop);
-    showToast('Sala creada: ' + roomCode);
-  });
-  peer.on('connection', conn => {
-    conn.on('open', () => {
-      conn.on('data', data => onClientData(conn, data));
-      conn.on('close', () => removeClient(conn));
-    });
-  });
-  peer.on('error', err => {
-    document.getElementById('menuStatus').textContent =
-      err.type === 'unavailable-id' ? 'Ese código ya existe, prueba otro' : 'Error: ' + err.type;
-    if (peer) peer.destroy();
-    peer = null;
-  });
-}
-
-function initHostWorld(){
-  const name = document.getElementById('nameInput').value.trim() || 'Host';
-  state = { players: new Map(), bots: new Map(), foods: new Map() };
-  foodIdCounter = 1; botIdCounter = 1; nextClientId = 1;
-  clientConns.clear(); connToShort.clear();
-  foodAdds = []; foodRemoves = [];
-
-  myPlayer = new Blob(WORLD/2, WORLD/2, 30, '#4ade80', name, 'h');
-  state.players.set('h', myPlayer);
-  for (let i = 0; i < FOOD_COUNT; i++) spawnFood();
-  for (let i = 0; i < BOT_COUNT; i++) spawnBot();
-  cam = { x: myPlayer.x, y: myPlayer.y };
-  score = 0; bestMass = myPlayer.mass;
-  myId = 'h';
-}
-
-function onClientData(conn, msg){
-  if (msg.type === 'hello') {
-    const shortId = 'c' + (nextClientId++);
-    connToShort.set(conn.peer, shortId);
-    clientConns.set(shortId, conn);
-    const blob = new Blob(
-      rand(300, WORLD-300), rand(300, WORLD-300), 30,
-      `hsl(${Math.random()*360}, 70%, 60%)`,
-      (msg.name || 'Anon').slice(0, 14), shortId
-    );
-    blob.targetX = blob.x; blob.targetY = blob.y;
-    state.players.set(shortId, blob);
-    // Enviar bienvenida con ID y comidas
-    const welcome = {
-      type: 'welcome',
-      id: shortId,
-      food: [...state.foods.values()].map(f => ({
-        i: f.id, x: Math.round(f.x), y: Math.round(f.y),
-        r: Math.round(f.r*10)/10, c: f.color
-      }))
-    };
-    conn.send(welcome);
-    showToast('👋 ' + blob.name + ' se unió');
-  } else if (msg.type === 'target') {
-    const id = connToShort.get(conn.peer);
-    const b = state.players.get(id);
-    if (b) { b.targetX = msg.x; b.targetY = msg.y; }
+  if(claudeMemory.isAlly&&d<400&&tSec-claudeMemory.chatCooldown>14&&Math.random()<.003){
+    const f=['Estamos juntos 💚','Te cubro la espalda','Buena caza','Sigue así','¿Viste eso?','Contigo siempre'];
+    showToast('👑 '+f[Math.floor(Math.random()*f.length)],'claude');claudeMemory.chatCooldown=tSec;
   }
 }
 
-function removeClient(conn){
-  const id = connToShort.get(conn.peer);
-  if (id) {
-    const b = state.players.get(id);
-    if (b) showToast('👋 ' + b.name + ' salió');
-    state.players.delete(id);
-    clientConns.delete(id);
-    connToShort.delete(conn.peer);
+// ============ CLAUDE ALLY ============
+function updateClaudeAlly(botCells,dt,tSec,center){
+  if(!player||!player.cells.length)return;
+  const pCenter=getPlayerCenter(),playerMass=getPlayerMass();
+  const totalMass=botCells.reduce((s,c)=>s+c.mass,0);
+  const maxR=Math.max(...botCells.map(c=>c.r));
+  let threat=null,threatD=Infinity;
+  for(const c of bots){
+    if(c.ownerId===CLAUDE_ID)continue;
+    const dp=dist(c,pCenter);
+    if(dp<400&&c.mass>playerMass*EAT_RATIO&&dp<threatD){threat=c;threatD=dp;}
   }
-}
-
-// ================= NETWORK: CLIENT =================
-function startClient(roomCode, name){
-  peer = new Peer();
-  peer.on('open', () => {
-    serverConn = peer.connect(PEER_PREFIX + roomCode, { reliable: true });
-    serverConn.on('open', () => {
-      serverConn.send({ type: 'hello', name });
-    });
-    serverConn.on('data', d => onServerData(d));
-    serverConn.on('close', () => {
-      showToast('❌ Host desconectado');
-      setTimeout(() => location.reload(), 1800);
-    });
-  });
-  peer.on('error', err => {
-    document.getElementById('menuStatus').textContent =
-      err.type === 'peer-unavailable' ? 'Sala no encontrada' : 'Error: ' + err.type;
-    if (peer) peer.destroy();
-    peer = null;
-  });
-}
-
-function onServerData(msg){
-  if (msg.type === 'welcome') {
-    myShortId = msg.id;
-    myId = msg.id;
-    state = { players: new Map(), bots: new Map(), foods: new Map() };
-    for (const f of msg.food) {
-      state.foods.set(f.i, { id: f.i, x: f.x, y: f.y, r: f.r, color: f.c });
+  if(threat&&totalMass>threat.mass*1.2){
+    const px=threat.x+threat.vx*.5,py=threat.y+threat.vy*.5;
+    const d=dist(threat,center);
+    if(d>maxR*1.5&&d<500&&botCells.length<MAX_BOT_CELLS&&maxR>MIN_SPLIT_R*1.6&&(totalMass/2)>threat.mass*EAT_RATIO*1.3){
+      botSplitAway(CLAUDE_ID,px,py,tSec);return;
     }
-    mode = 'client';
-    document.getElementById('menu').style.display = 'none';
-    document.getElementById('hud').style.display = 'block';
-    document.getElementById('ranking').style.display = 'block';
-    document.getElementById('minimap').style.display = 'block';
-    last = performance.now();
-    requestAnimationFrame(loop);
-    showToast('✅ Conectado');
-  } else if (msg.type === 'state') {
-    // Jugadores
-    const seen = new Set();
-    for (const p of msg.p) {
-      seen.add(p.i);
-      let ex = state.players.get(p.i);
-      if (ex) {
-        ex.targetX = p.x; ex.targetY = p.y; ex.targetR = p.r;
-        ex.name = p.n; ex.color = p.c;
-      } else {
-        const nb = { id: p.i, name: p.n, color: p.c, x: p.x, y: p.y, r: p.r,
-                     targetX: p.x, targetY: p.y, targetR: p.r };
-        state.players.set(p.i, nb);
-      }
-    }
-    for (const id of [...state.players.keys()]) {
-      if (!seen.has(id)) state.players.delete(id);
-    }
-    // Bots
-    const seenB = new Set();
-    for (const b of msg.b) {
-      seenB.add(b.i);
-      let ex = state.bots.get(b.i);
-      if (ex) {
-        ex.targetX = b.x; ex.targetY = b.y; ex.targetR = b.r;
-        ex.name = b.n; ex.color = b.c;
-      } else {
-        state.bots.set(b.i, { id: b.i, name: b.n, color: b.c, x: b.x, y: b.y, r: b.r,
-                              targetX: b.x, targetY: b.y, targetR: b.r });
-      }
-    }
-    for (const id of [...state.bots.keys()]) {
-      if (!seenB.has(id)) state.bots.delete(id);
-    }
-    // Comida delta
-    if (msg.fa) for (const f of msg.fa) {
-      state.foods.set(f.i, { id: f.i, x: f.x, y: f.y, r: f.r, color: f.c });
-    }
-    if (msg.fr) for (const id of msg.fr) state.foods.delete(id);
-  }
-}
-
-// ================= ENTRY POINTS =================
-function startSolo(){
-  const name = document.getElementById('nameInput').value.trim() || 'Jugador';
-  mode = 'solo';
-  state = { players: new Map(), bots: new Map(), foods: new Map() };
-  foodIdCounter = 1; botIdCounter = 1;
-  myPlayer = new Blob(WORLD/2, WORLD/2, 30, '#4ade80', name, 'h');
-  state.players.set('h', myPlayer);
-  for (let i = 0; i < FOOD_COUNT; i++) spawnFood();
-  for (let i = 0; i < BOT_COUNT; i++) spawnBot();
-  cam = { x: myPlayer.x, y: myPlayer.y };
-  score = 0; bestMass = myPlayer.mass;
-  myId = 'h';
-  document.getElementById('menu').style.display = 'none';
-  document.getElementById('hud').style.display = 'block';
-  document.getElementById('ranking').style.display = 'block';
-  document.getElementById('minimap').style.display = 'block';
-  last = performance.now();
-  requestAnimationFrame(loop);
-}
-
-function generateCode(){
-  return Math.random().toString(36).substring(2, 7).toUpperCase();
-}
-
-document.getElementById('soloBtn').onclick = startSolo;
-
-document.getElementById('hostBtn').onclick = () => {
-  const code = generateCode();
-  document.getElementById('menuStatus').textContent = 'Conectando...';
-  startHost(code);
-};
-
-document.getElementById('joinBtn').onclick = () => {
-  const code = document.getElementById('codeInput').value.trim().toUpperCase();
-  if (code.length < 3) {
-    document.getElementById('menuStatus').textContent = 'Escribe un código válido';
+    for(const cell of botCells)moveCellToward(cell,px,py,dt,580);
     return;
   }
-  const name = document.getElementById('nameInput').value.trim() || 'Jugador';
-  document.getElementById('menuStatus').textContent = 'Conectando...';
-  startClient(code, name);
-};
+  if(playerMass<800&&totalMass>2000&&tSec-claudeMemory.lastEject>2){
+    const d=dist(center,pCenter);
+    if(d<500&&d>150){
+      const dx=pCenter.x-center.x,dy=pCenter.y-center.y,dl=Math.sqrt(dx*dx+dy*dy)||1;
+      for(const cell of botCells){
+        if(cell.r<MIN_EJECT_R*1.5)continue;
+        const newMass=cell.mass-EJECT_MASS;
+        if(newMass<MIN_EJECT_R*MIN_EJECT_R)continue;
+        cell.setFromMass(newMass);
+        ejected.push({x:cell.x+dx/dl*cell.r,y:cell.y+dy/dl*cell.r,vx:dx/dl*700,vy:dy/dl*700,r:Math.sqrt(EJECT_MASS),mass:EJECT_MASS,color:cell.color,ownerId:'gift'});
+      }
+      claudeMemory.lastEject=tSec;
+      if(tSec-claudeMemory.chatCooldown>10){showToast('👑 Claude: "¡Toma, come!"','claude');claudeMemory.chatCooldown=tSec;}
+    }
+    for(const cell of botCells)moveCellToward(cell,pCenter.x,pCenter.y,dt,520);
+    return;
+  }
+  const followDist=280,d=dist(center,pCenter);
+  if(d>followDist+120){for(const cell of botCells)moveCellToward(cell,pCenter.x,pCenter.y,dt,500);}
+  else if(d<followDist-60){
+    const dx=center.x-pCenter.x,dy=center.y-pCenter.y,dl=Math.sqrt(dx*dx+dy*dy)||1;
+    const tx=center.x+dx/dl*200,ty=center.y+dy/dl*200;
+    for(const cell of botCells)moveCellToward(cell,tx,ty,dt,420);
+  }else{
+    const bf=nearestFoodInGrid(center.x,center.y,500);
+    if(bf&&dist(bf,pCenter)<700)for(const cell of botCells)moveCellToward(cell,bf.x,bf.y,dt,450);
+  }
+}
 
-document.getElementById('codeInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('joinBtn').click();
+// ============ CLAUDE AI ============
+function updateClaudeAI(botCells,dt,tSec,center){
+  updateClaudeMemory(dt,tSec,center,botCells);
+  if(claudeMemory.isAlly){updateClaudeAlly(botCells,dt,tSec,center);return;}
+  const totalMass=botCells.reduce((s,c)=>s+c.mass,0);
+  const maxR=Math.max(...botCells.map(c=>c.r));
+  const pCells=player.cells;
+  let predVx=0,predVy=0;
+  if(pCells.length>0){
+    for(const c of pCells){predVx+=c.vx;predVy+=c.vy;}
+    predVx/=pCells.length;predVy/=pCells.length;
+  }
+  let threat=null,threatDanger=0;
+  for(const o of pCells){
+    const d=dist(o,center);
+    if(d<550&&o.mass>totalMass*EAT_RATIO){
+      const danger=o.mass/(d+50);
+      if(danger>threatDanger){threat=o;threatDanger=danger;}
+    }
+  }
+  for(const o of bots){
+    if(o.ownerId===CLAUDE_ID)continue;
+    const d=dist(o,center);
+    if(d<550&&o.mass>totalMass*EAT_RATIO){
+      const danger=o.mass/(d+50);
+      if(danger>threatDanger){threat=o;threatDanger=danger;}
+    }
+  }
+  if(threat){
+    const threatDist=dist(threat,center);
+    if(threatDist<maxR+150&&botCells.length<MAX_BOT_CELLS&&maxR>MIN_SPLIT_R*1.4){
+      const dx=threat.x-center.x,dy=threat.y-center.y,dl=Math.sqrt(dx*dx+dy*dy)||1;
+      botSplitAway(CLAUDE_ID,center.x-dy/dl*400,center.y+dx/dl*400,tSec);return;
+    }
+    let bestVirus=null,bestVirusScore=-Infinity;
+    if(maxR>VIRUS_R*1.05){
+      for(const v of viruses){
+        const vd=dist(v,center);if(vd>550)continue;
+        const tvx=threat.x-center.x,tvy=threat.y-center.y,vvx=v.x-center.x,vvy=v.y-center.y;
+        const tl=Math.sqrt(tvx*tvx+tvy*tvy)||1,vl=Math.sqrt(vvx*vvx+vvy*vvy)||1;
+        const dot=(tvx*vvx+tvy*vvy)/(tl*vl);
+        if(dot>.4){const score=dot*200-vd*.3;if(score>bestVirusScore){bestVirusScore=score;bestVirus=v;}}
+      }
+    }
+    if(bestVirus){
+      const dx=bestVirus.x-threat.x,dy=bestVirus.y-threat.y,dl=Math.sqrt(dx*dx+dy*dy)||1;
+      const tx=bestVirus.x+dx/dl*(VIRUS_R+maxR+20),ty=bestVirus.y+dy/dl*(VIRUS_R+maxR+20);
+      for(const cell of botCells)moveCellToward(cell,tx,ty,dt,560);return;
+    }
+    for(const cell of botCells)moveCellToward(cell,center.x+(center.x-threat.x)*3,center.y+(center.y-threat.y)*3,dt,560);
+    return;
+  }
+  let prey=null,preyScore=-Infinity,preyPredict=null;
+  const enemies=[...pCells,...bots.filter(c=>c.ownerId!==CLAUDE_ID)];
+  for(const o of enemies){
+    const d=dist(o,center);if(d>750)continue;
+    if(totalMass<=o.mass*EAT_RATIO*1.15)continue;
+    const score=(750-d)+(o.mass<totalMass*.4?300:0);
+    if(score>preyScore){
+      preyScore=score;prey=o;
+      const vel=o.ownerId==='player'?{x:predVx,y:predVy}:{x:o.vx,y:o.vy};
+      preyPredict={x:o.x+vel.x*.6,y:o.y+vel.y*.6};
+    }
+  }
+  if(prey){
+    const d=dist(prey,center);
+    const wouldWinAfterSplit=(totalMass/2)>prey.mass*EAT_RATIO*1.4;
+    const inSplitRange=d>maxR*1.2&&d<450;
+    const canSplit=botCells.length<MAX_BOT_CELLS&&maxR>MIN_SPLIT_R*1.8;
+    const splitProb=.3+claudeMemory.playerAggression*.4;
+    if(wouldWinAfterSplit&&inSplitRange&&canSplit&&Math.random()<splitProb){
+      botSplitAway(CLAUDE_ID,preyPredict.x,preyPredict.y,tSec);return;
+    }
+    for(const cell of botCells)moveCellToward(cell,preyPredict.x,preyPredict.y,dt,520);
+    return;
+  }
+  const bf=nearestFoodInGrid(center.x,center.y,900);
+  if(bf){
+    let danger=0;
+    for(const o of enemies){
+      if(o.mass<totalMass*EAT_RATIO)continue;
+      const od=dist(o,bf);if(od<350)danger+=(350-od);
+    }
+    if(danger<300){for(const cell of botCells)moveCellToward(cell,bf.x,bf.y,dt,500);return;}
+  }
+  const wanderX=center.x+Math.cos(tSec+botCells[0].wobbleSeed)*500;
+  const wanderY=center.y+Math.sin(tSec+botCells[0].wobbleSeed)*500;
+  for(const cell of botCells)moveCellToward(cell,wanderX,wanderY,dt,480);
+}
+
+// ============ MOVEMENT ============
+function moveCellToward(cell,tx,ty,dt,maxSpeed){
+  const dx=tx-cell.x,dy=ty-cell.y,d=Math.sqrt(dx*dx+dy*dy);
+  const speed=Math.max(70,maxSpeed/Math.pow(cell.r,.42));
+  if(d>2){
+    const k=Math.min(1,dt*12);
+    cell.vx=lerp(cell.vx,(dx/d)*speed,k);cell.vy=lerp(cell.vy,(dy/d)*speed,k);
+  }else{cell.vx*=Math.pow(.0001,dt);cell.vy*=Math.pow(.0001,dt);}
+  cell.x+=cell.vx*dt;cell.y+=cell.vy*dt;
+  cell.x=Math.max(cell.r,Math.min(WORLD-cell.r,cell.x));
+  cell.y=Math.max(cell.r,Math.min(WORLD-cell.r,cell.y));
+  if(cell.mass>200)cell.r*=(1-DECAY_RATE*dt);
+}
+
+// ============ UPDATE ============
+function update(dt){
+  if(!player)return;
+  const tSec=now(),target=mouseToWorld();
+  for(const cell of player.cells)moveCellToward(cell,target.x,target.y,dt,560);
+  // Merge player
+  for(let i=0;i<player.cells.length;i++){
+    for(let j=i+1;j<player.cells.length;j++){
+      const a=player.cells[i],b=player.cells[j];
+      const d=dist(a,b)||.001,canMerge=tSec>=a.mergeTime&&tSec>=b.mergeTime;
+      if(canMerge){
+        if(d<Math.max(a.r,b.r)*.9){
+          const big=a.mass>=b.mass?a:b,small=big===a?b:a;
+          big.setFromMass(big.mass+small.mass);player.cells.splice(player.cells.indexOf(small),1);j--;continue;
+        }else{
+          const f=200/d,ux=(b.x-a.x)/d,uy=(b.y-a.y)/d;
+          a.x+=ux*f*dt;a.y+=uy*f*dt;b.x-=ux*f*dt;b.y-=uy*f*dt;
+        }
+      }else{
+        const overlap=(a.r+b.r)-d;
+        if(overlap>0){
+          const push=overlap*.5,ux=(b.x-a.x)/d,uy=(b.y-a.y)/d;
+          a.x-=ux*push;a.y-=uy*push;b.x+=ux*push;b.y+=uy*push;
+        }
+      }
+    }
+  }
+  for(const cell of player.cells)if(cell.mass>200)cell.r*=(1-DECAY_RATE*dt);
+  // AI bots
+  const botGroups=new Map();
+  for(const c of bots){if(!botGroups.has(c.ownerId))botGroups.set(c.ownerId,[]);botGroups.get(c.ownerId).push(c);}
+  for(const[botId,botCells]of botGroups){
+    if(!botCells.length)continue;
+    const center=botCenter(botCells);
+    if(botId===CLAUDE_ID){updateClaudeAI(botCells,dt,tSec,center);continue;}
+    const totalMass=botCells.reduce((s,c)=>s+c.mass,0);
+    const maxR=Math.max(...botCells.map(c=>c.r));
+    let threat=null,threatD=Infinity;
+    for(const o of player.cells){
+      const d=dist(o,center);
+      if(d<400&&o.mass>maxR*maxR*EAT_RATIO&&d<threatD){threat=o;threatD=d;}
+    }
+    for(const o of bots){
+      if(o.ownerId===botId)continue;
+      const d=dist(o,center);
+      if(d<400&&o.mass>maxR*maxR*EAT_RATIO&&d<threatD){threat=o;threatD=d;}
+    }
+    if(threat&&botCells.length<MAX_BOT_CELLS&&maxR>MIN_SPLIT_R*1.3){botSplitAway(botId,threat.x,threat.y,tSec);continue;}
+    let tx=center.x,ty=center.y,fleeing=false;
+    for(const o of player.cells){
+      const d=dist(o,center);
+      if(d<maxR+o.r+220&&o.mass>totalMass*EAT_RATIO){tx=center.x+(center.x-o.x);ty=center.y+(center.y-o.y);fleeing=true;break;}
+    }
+    if(!fleeing){
+      let prey=null,preyD=Infinity;
+      for(const o of player.cells){
+        const d=dist(o,center);
+        if(d<500&&totalMass>o.mass*EAT_RATIO*1.5&&d<preyD){prey=o;preyD=d;}
+      }
+      let avoidVirus=null,avoidD=Infinity;
+      if(maxR>VIRUS_R*1.05){
+        for(const v of viruses){const d=dist(v,center);if(d<maxR+VIRUS_R+80&&d<avoidD){avoidVirus=v;avoidD=d;}}
+      }
+      if(avoidVirus){
+        const dx=center.x-avoidVirus.x,dy=center.y-avoidVirus.y,dl=Math.sqrt(dx*dx+dy*dy)||1;
+        tx=center.x+(dx/dl)*400;ty=center.y+(dy/dl)*400;
+      }else if(prey){tx=prey.x;ty=prey.y;}
+      else{const bf=nearestFoodInGrid(center.x,center.y,600);if(bf){tx=bf.x;ty=bf.y;}}
+    }
+    for(const cell of botCells)moveCellToward(cell,tx,ty,dt,500);
+  }
+  updateBotMerges(dt,tSec);
+  // Ejected
+  for(const e of ejected){
+    e.x+=e.vx*dt;e.y+=e.vy*dt;
+    e.vx*=Math.pow(.05,dt);e.vy*=Math.pow(.05,dt);
+    e.x=Math.max(e.r,Math.min(WORLD-e.r,e.x));e.y=Math.max(e.r,Math.min(WORLD-e.r,e.y));
+  }
+  // Rebuild food grid + eat
+  buildFoodGrid();
+  for(const cell of player.cells)eatFoodsForCell(cell);
+  for(const cell of bots)eatFoodsForCell(cell);
+  // Remove eaten foods (compact)
+  const aliveFoods=foods.filter(f=>!f.eaten);
+  while(aliveFoods.length<FOOD_COUNT){const f={x:rand(20,WORLD-20),y:rand(20,WORLD-20),r:rand(4,8),color:'hsl('+Math.floor(Math.random()*360)+', 78%, 62%)'};aliveFoods.push(f);}
+  foods=aliveFoods;
+  // Ejected eating
+  for(let i=ejected.length-1;i>=0;i--){
+    const e=ejected[i];let eaten=false;
+    for(const cell of player.cells)if(dist(e,cell)<cell.r){cell.setFromMass(cell.mass+e.mass*.85);player.score++;eaten=true;break;}
+    if(!eaten)for(const b of bots)if(dist(e,b)<b.r){b.setFromMass(b.mass+e.mass*.85);eaten=true;break;}
+    if(eaten)ejected.splice(i,1);
+  }
+  // Player vs virus
+  for(let i=viruses.length-1;i>=0;i--){
+    const v=viruses[i];
+    for(const cell of player.cells){
+      const d=dist(v,cell);
+      if(d<cell.r+v.r){
+        if(cell.r>v.r&&tSec>=player.spawnProtection){
+          const available=MAX_CELLS-player.cells.length,numPieces=Math.min(available+1,6);
+          if(numPieces>=2){
+            const newMass=cell.mass/numPieces;
+            cell.setFromMass(newMass);cell.mergeTime=tSec+MERGE_COOLDOWN;
+            for(let k=1;k<numPieces;k++){
+              const ang=(k/numPieces)*Math.PI*2;
+              const nc=new Cell(cell.x+1,cell.y+1,cell.r,cell.color,cell.name,cell.pattern,'player');
+              nc.mergeTime=tSec+MERGE_COOLDOWN;
+              nc.vx=Math.cos(ang)*800;nc.vy=Math.sin(ang)*800;
+              player.cells.push(nc);
+            }
+            viruses.splice(i,1);spawnVirus();showToast('💥 ¡Explotaste con un virus!');
+          }else{
+            // FIX BUCLE INFINITO: Si ya tienes 16 células, no te da masa, solo explota
+            viruses.splice(i,1);spawnVirus();
+          }
+        }else{
+          const ddx=cell.x-v.x,ddy=cell.y-v.y,dd=Math.sqrt(ddx*ddx+ddy*ddy)||1;
+          cell.vx+=(ddx/dd)*400;cell.vy+=(ddy/dd)*400;
+        }
+        break;
+      }
+    }
+  }
+  // Player vs bots
+  const protectedNow=tSec<player.spawnProtection;
+  for(let i=bots.length-1;i>=0;i--){
+    const b=bots[i];let removed=false;
+    for(const cell of player.cells){
+      const d=dist(b,cell);
+      if(d<cell.r-b.r*.4&&cell.mass>b.mass*EAT_RATIO&&!protectedNow){
+        if(b.ownerId===CLAUDE_ID){
+          if(claudeMemory.isAlly){claudeMemory.trust=0;claudeMemory.isAlly=false;showToast('💔 ¡Traicionaste a Claude!','claude');}
+          else showToast('👑 ¡Comiste a Claude!','claude');
+        }
+        cell.setFromMass(cell.mass+b.mass);player.score+=Math.round(b.mass/50);
+        bots.splice(i,1);removed=true;break;
+      }else if(d<b.r-cell.r*.4&&b.mass>cell.mass*EAT_RATIO&&!protectedNow){
+        if(b.ownerId===CLAUDE_ID&&claudeMemory.isAlly)continue;
+        b.setFromMass(b.mass+cell.mass);
+        player.cells.splice(player.cells.indexOf(cell),1);
+        if(!player.cells.length){
+          const nc=new Cell(rand(WORLD*.3,WORLD*.7),rand(WORLD*.3,WORLD*.7),30,player.color,player.name,player.pattern,'player');
+          player.cells.push(nc);player.spawnProtection=tSec+SPAWN_PROTECTION;showToast('💀 ¡Te comieron!');
+        }
+        removed=true;break;
+      }
+    }
+    if(removed)continue;
+  }
+  // Bots vs bots
+  for(let i=0;i<bots.length;i++){
+    for(let j=i+1;j<bots.length;j++){
+      const a=bots[i],b=bots[j];
+      if(a.ownerId===b.ownerId)continue;
+      const dx=a.x-b.x,dy=a.y-b.y,maxR=a.r+b.r;
+      if(dx*dx+dy*dy>maxR*maxR)continue;
+      const d=Math.sqrt(dx*dx+dy*dy);
+      if(d<a.r-b.r*.4&&a.mass>b.mass*EAT_RATIO){a.setFromMass(a.mass+b.mass);bots.splice(j,1);j--;}
+      else if(d<b.r-a.r*.4&&b.mass>a.mass*EAT_RATIO){b.setFromMass(b.mass+a.mass);bots.splice(i,1);i--;break;}
+    }
+  }
+  // Bots vs virus
+  for(const b of[...bots]){
+    if(!bots.includes(b))continue;
+    for(let vi=viruses.length-1;vi>=0;vi--){
+      const v=viruses[vi],d=dist(b,v);
+      if(d<b.r+v.r&&b.r>v.r*1.05){
+        const botCells=getBotCells(b.ownerId);
+        const available=Math.max(0,MAX_BOT_CELLS-botCells.length),numPieces=Math.min(available+1,3);
+        if(numPieces>=2){
+          const newMass=b.mass/numPieces;b.setFromMass(newMass);b.mergeTime=tSec+MERGE_COOLDOWN;
+          for(let k=1;k<numPieces;k++){
+            const ang=(k/numPieces)*Math.PI*2+Math.random()*.5;
+            const nc=new Cell(b.x+1,b.y+1,b.r,b.color,b.name,b.pattern,b.ownerId);
+            nc.mergeTime=tSec+MERGE_COOLDOWN;
+            nc.vx=Math.cos(ang)*800;nc.vy=Math.sin(ang)*800;
+            bots.push(nc);
+          }
+        }
+        // FIX: Ya no pierden masa mágicamente, solo sueltan masa y el virus explota
+        for(let k=0;k<4;k++)ejected.push({x:v.x,y:v.y,vx:rand(-400,400),vy:rand(-400,400),r:Math.sqrt(EJECT_MASS),mass:EJECT_MASS,color:b.color,ownerId:b.ownerId});
+        viruses.splice(vi,1);spawnVirus();break;
+      }
+    }
+  }
+  // Emojis
+  for(let i=emojis.length-1;i>=0;i--){const e=emojis[i];e.age+=dt;e.y-=60*dt;if(e.age>=e.life)emojis.splice(i,1);}
+  // Respawn
+  ensureBotCount(tSec);
+  const claudeAlive=bots.some(c=>c.ownerId===CLAUDE_ID);
+  if(!claudeAlive&&tSec>claudeRespawnAt){spawnClaude();claudeRespawnAt=tSec+CLAUDE_RESPAWN_COOLDOWN;showToast('👑 Claude ha vuelto','claude');}
+  // Camera
+  const totalMass=player.cells.reduce((s,c)=>s+c.mass,0);
+  if(totalMass>player.bestMass)player.bestMass=totalMass;
+  const pc=getPlayerCenter(),ck=1-Math.pow(.002,dt);
+  cam.x=lerp(cam.x,pc.x,ck);cam.y=lerp(cam.y,pc.y,ck);
+  const maxR=Math.max(...player.cells.map(c=>c.r));
+  const targetZoom=Math.max(.05,Math.min(1.5,100/maxR)); // FIX: Ahora permite alejarse más
+  cam.zoom=lerp(cam.zoom,targetZoom,1-Math.pow(.05,dt));
+}
+
+// ============ RENDER ============
+function render(t){
+  ctx.fillStyle='#0a0a0f';ctx.fillRect(0,0,W,H);
+  ctx.save();ctx.translate(W/2,H/2);ctx.scale(cam.zoom,cam.zoom);ctx.translate(-cam.x,-cam.y);
+  const gs=120;
+  ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1/cam.zoom;
+  const sx0=Math.floor((cam.x-W/2/cam.zoom)/gs)*gs,sy0=Math.floor((cam.y-H/2/cam.zoom)/gs)*gs;
+  const sx1=cam.x+W/2/cam.zoom,sy1=cam.y+H/2/cam.zoom;
+  for(let x=sx0;x<sx1+gs;x+=gs){ctx.beginPath();ctx.moveTo(x,sy0);ctx.lineTo(x,sy1);ctx.stroke();}
+  for(let y=sy0;y<sy1+gs;y+=gs){ctx.beginPath();ctx.moveTo(sx0,y);ctx.lineTo(sx1,y);ctx.stroke();}
+  ctx.strokeStyle='rgba(255,80,80,.5)';ctx.lineWidth=5/cam.zoom;ctx.strokeRect(0,0,WORLD,WORLD);
+  // Foods (culled)
+  for(const f of foods){
+    if(f.x<sx0-20||f.x>sx1+20||f.y<sy0-20||f.y>sy1+20)continue;
+    ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,Math.PI*2);ctx.fillStyle=f.color;ctx.fill();
+  }
+  for(const e of ejected){ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,Math.PI*2);ctx.fillStyle=e.color;ctx.fill();}
+  for(const v of viruses){
+    if(v.x<sx0-60||v.x>sx1+60||v.y<sy0-60||v.y>sy1+60)continue;
+    drawVirus(v,t);
+  }
+  const all=[...bots,...player.cells].sort((a,b)=>a.r-b.r);
+  for(const c of all)drawCell(c,t);
+  ctx.restore();
+  for(const e of emojis){
+    const sx=(e.x-cam.x)*cam.zoom+W/2,sy=(e.y-cam.y)*cam.zoom+H/2,a=1-e.age/e.life;
+    ctx.globalAlpha=a;ctx.font='32px sans-serif';ctx.textAlign='center';ctx.fillText(e.emoji,sx,sy);ctx.globalAlpha=1;
+  }
+  drawMinimap();
+}
+function drawCell(cell,t){
+  const{x,y,r}=cell;
+  if(x<cam.x-W/2/cam.zoom-r*2||x>cam.x+W/2/cam.zoom+r*2)return;
+  if(y<cam.y-H/2/cam.zoom-r*2||y>cam.y+H/2/cam.zoom+r*2)return;
+  const isPlayer=cell.ownerId==='player',isClaude=cell.ownerId===CLAUDE_ID;
+  const claudeAlly=isClaude&&claudeMemory.isAlly;
+  const protectedNow=isPlayer&&player.spawnProtection>now();
+  const alpha=protectedNow?.5+.5*Math.sin(now()*30):1;
+  const breath=1+Math.sin(t*.003+cell.wobbleSeed)*.04;
+  ctx.save();ctx.globalAlpha=alpha;
+  ctx.beginPath();ctx.arc(x,y,r*breath,0,Math.PI*2);
+  if(cell.pattern==='gradient'){
+    const g=ctx.createRadialGradient(x-r*.35,y-r*.35,r*.05,x,y,r);
+    g.addColorStop(0,shadeColor(cell.color,55));g.addColorStop(1,shadeColor(cell.color,-55));
+    ctx.fillStyle=g;
+  }else if(cell.pattern==='ring')ctx.fillStyle=shadeColor(cell.color,-70);
+  else ctx.fillStyle=cell.color;
+  ctx.fill();
+  if(cell.pattern==='ring'){ctx.beginPath();ctx.arc(x,y,r*.7,0,Math.PI*2);ctx.fillStyle=cell.color;ctx.fill();}
+  if(isPlayer&&customSkinImage&&customSkinImage.complete){
+    ctx.save();ctx.beginPath();ctx.arc(x,y,r*.85,0,Math.PI*2);ctx.clip();
+    ctx.drawImage(customSkinImage,x-r*.85,y-r*.85,r*1.7,r*1.7);ctx.restore();
+  }
+  if(isClaude&&r>25){
+    ctx.font='bold '+(r*.7)+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(claudeAlly?'💚':'👑',x,y-r*1.15);
+  }
+  ctx.beginPath();ctx.arc(x,y,r*breath,0,Math.PI*2);
+  ctx.lineWidth=Math.max(2,r*.05);
+  if(claudeAlly){ctx.strokeStyle='rgba(74,222,128,.95)';ctx.lineWidth=Math.max(3,r*.08);}
+  else if(isClaude)ctx.strokeStyle='rgba(251,191,36,.9)';
+  else ctx.strokeStyle='rgba(0,0,0,.45)';
+  ctx.stroke();
+  // FIX: Ocultar ojos si la célula es demasiado grande para que no rompan la pantalla
+  if(r>15&&r<600){
+    let lookX,lookY;
+    if(isPlayer){const tgt=mouseToWorld();lookX=tgt.x-x;lookY=tgt.y-y;}
+    else{lookX=cell.vx;lookY=cell.vy;}
+    const ll=Math.sqrt(lookX*lookX+lookY*lookY)||1,lx=lookX/ll,ly=lookY/ll;
+    const eyeSpacing=r*.32,eyeR=r*.20,pupilR=r*.10,pupilOffset=eyeR*.5;
+    for(const sign of[-1,1]){
+      const ex=x+eyeSpacing*sign,ey=y-eyeR*.3;
+      ctx.beginPath();ctx.ellipse(ex,ey,eyeR,eyeR*.9,0,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
+      ctx.beginPath();ctx.arc(ex+lx*pupilOffset,ey+ly*pupilOffset,pupilR,0,Math.PI*2);ctx.fillStyle='#111';ctx.fill();
+    }
+  }
+  if(r>22){
+    ctx.font='bold '+Math.max(12,r*.30)+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    const textY=y+r*.45,tw=ctx.measureText(cell.name).width;
+    ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(x-tw/2-6,textY-r*.18-2,tw+12,r*.36+4);
+    ctx.fillStyle=claudeAlly?'#4ade80':(isClaude?'#fbbf24':'#fff');
+    ctx.fillText(cell.name,x,textY);
+  }
+  ctx.restore();
+}
+function drawVirus(v,t){
+  const spikes=14,wobble=Math.sin(t*.002+v.seed)*.05;
+  ctx.beginPath();
+  for(let i=0;i<spikes*2;i++){
+    const angle=(i/(spikes*2))*Math.PI*2,rr=v.r*(i%2===0?1.1+wobble:.9+wobble);
+    const px=v.x+Math.cos(angle)*rr,py=v.y+Math.sin(angle)*rr;
+    if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+  }
+  ctx.closePath();ctx.fillStyle='rgba(34,197,94,.7)';ctx.fill();
+  ctx.lineWidth=3;ctx.strokeStyle='#16a34a';ctx.stroke();
+  ctx.beginPath();ctx.arc(v.x,v.y,v.r*.5,0,Math.PI*2);ctx.fillStyle='rgba(21,128,61,.5)';ctx.fill();
+}
+function drawMinimap(){
+  const mw=miniCanvas.width,mh=miniCanvas.height;
+  miniCtx.fillStyle='rgba(10,10,20,.9)';miniCtx.fillRect(0,0,mw,mh);
+  const sx=mw/WORLD,sy=mh/WORLD;
+  for(const b of bots){
+    let fill=b.color;
+    if(b.ownerId===CLAUDE_ID)fill=claudeMemory.isAlly?'#4ade80':'#fbbf24';
+    miniCtx.beginPath();miniCtx.arc(b.x*sx,b.y*sy,Math.max(1,b.r*sx*1.5),0,Math.PI*2);miniCtx.fillStyle=fill;miniCtx.fill();
+  }
+  for(const v of viruses){miniCtx.beginPath();miniCtx.arc(v.x*sx,v.y*sy,2,0,Math.PI*2);miniCtx.fillStyle='#16a34a';miniCtx.fill();}
+  for(const c of player.cells){
+    miniCtx.beginPath();miniCtx.arc(c.x*sx,c.y*sy,Math.max(2.5,c.r*sx*2.5),0,Math.PI*2);
+    miniCtx.fillStyle='#4ade80';miniCtx.fill();miniCtx.strokeStyle='#fff';miniCtx.lineWidth=1.5;miniCtx.stroke();
+  }
+  miniCtx.strokeStyle='rgba(255,255,255,.35)';miniCtx.lineWidth=1;
+  miniCtx.strokeRect((cam.x-W/2/cam.zoom)*sx,(cam.y-H/2/cam.zoom)*sy,(W/cam.zoom)*sx,(H/cam.zoom)*sy);
+}
+
+// ============ HUD ============
+let rankEls=[];
+function initRankHud(){
+  const list=document.getElementById('rankList');list.innerHTML='';rankEls=[];
+  for(let i=0;i<10;i++){
+    const li=document.createElement('li');
+    const ns=document.createElement('span');ns.className='name';
+    const ms=document.createElement('span');
+    li.appendChild(ns);li.appendChild(ms);
+    list.appendChild(li);rankEls.push({li,ns,ms});
+  }
+}
+function updateHUD(){
+  if(!player)return;
+  const entries=[],playerMass=getPlayerMass();
+  if(playerMass>0)entries.push({name:player.name,mass:playerMass,isYou:true,isClaude:false});
+  const botMassMap=new Map();
+  for(const c of bots){
+    if(!botMassMap.has(c.ownerId))botMassMap.set(c.ownerId,{name:c.name,mass:0,isYou:false,isClaude:c.ownerId===CLAUDE_ID});
+    botMassMap.get(c.ownerId).mass+=c.mass;
+  }
+  for(const[,b]of botMassMap)entries.push(b);
+  entries.sort((a,b)=>b.mass-a.mass);
+  const top=entries.slice(0,10);
+  for(let i=0;i<10;i++){
+    const el=rankEls[i];
+    if(i<top.length){
+      const e=top[i];
+      el.li.style.display='flex';
+      el.li.className=e.isYou?'you':(e.isClaude?'claude'+(claudeMemory.isAlly?' ally':''):'');
+      el.ns.textContent=(i+1)+'. '+e.name+(e.isClaude&&claudeMemory.isAlly?' 💚':'');
+      el.ms.textContent=Math.round(e.mass);
+    }else el.li.style.display='none';
+  }
+  document.getElementById('score').textContent=player.score;
+  document.getElementById('mass').textContent=Math.round(playerMass);
+  document.getElementById('cells').textContent=player.cells.length+'/16';
+  const moodEl=document.getElementById('claudeMood');
+  document.getElementById('claudeTrust').textContent=Math.round(claudeMemory.trust);
+  const claudeAlive=bots.some(c=>c.ownerId===CLAUDE_ID);
+  if(!claudeAlive){moodEl.textContent='Ha muerto';moodEl.classList.remove('ally');moodEl.style.color='#666';}
+  else{
+    moodEl.style.color='';let mood,cls='';
+    if(claudeMemory.isAlly){mood='Aliado 💚';cls='ally';}
+    else if(claudeMemory.trust>=60)mood='Amistoso 😊';
+    else if(claudeMemory.trust>=35)mood='Neutral 😐';
+    else if(claudeMemory.trust>=15)mood='Sospechoso 🤨';
+    else mood='Hostil 😠';
+    moodEl.textContent=mood;moodEl.classList.toggle('ally',cls==='ally');
+  }
+}
+
+// ============ CONTROLS ============
+document.addEventListener('keydown',e=>{
+  if(!running)return;
+  if(e.key===' '){e.preventDefault();splitPlayer();}
+  else if(e.key==='w'||e.key==='W')ejectPlayer();
+  else if(e.key>='1'&&e.key<='6')sendEmoji(EMOJIS[parseInt(e.key)-1]);
 });
+const bindBtn=(id,fn)=>{const b=document.getElementById(id);
+  b.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();fn(e);},{passive:false});
+  b.addEventListener('click',fn);};
+bindBtn('splitBtn',()=>splitPlayer());
+bindBtn('ejectBtn',()=>ejectPlayer());
+let emojiIndex=0;
+bindBtn('emojiBtn',e=>{sendEmoji(EMOJIS[emojiIndex]);emojiIndex=(emojiIndex+1)%EMOJIS.length;e.target.textContent=EMOJIS[emojiIndex];});
+document.getElementById('playBtn').addEventListener('click',startGame);
+document.getElementById('nameInput').addEventListener('keydown',e=>{if(e.key==='Enter')startGame();});
+console.log('📦 Agar Clone · Fix Bug cargado');
 </script>
 </body>
 </html>
