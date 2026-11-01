@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Agar Clone Online</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { overflow:hidden; background:#0a0a0f; font-family:'Segoe UI', sans-serif; }
+  canvas#c { display:block; cursor:crosshair; }
+
+  #menu {
+    position:fixed; inset:0; background:radial-gradient(circle, #1a1a2a, #0a0a0f);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    z-index:100; color:#fff; gap:16px; padding:20px;
+  }
+  #menu h1 { font-size:48px; letter-spacing:6px; color:#4ade80;
+    text-shadow:0 0 25px rgba(74,222,128,0.6); }
+  #menu p.sub { color:#888; font-size:13px; margin-bottom:8px; }
+  #menu input {
+    padding:12px 18px; font-size:17px; border-radius:10px;
+    border:2px solid #4ade80; background:#1a1a2a; color:#fff; outline:none;
+    width:300px; text-align:center; transition:box-shadow .2s;
+  }
+  #menu input:focus { box-shadow:0 0 18px rgba(74,222,128,0.5); }
+  #codeInput { text-transform:uppercase; letter-spacing:4px; font-weight:bold; }
+  #menu button {
+    padding:12px 26px; font-size:16px; border-radius:10px; border:none;
+    background:#4ade80; color:#0a0a0f; font-weight:bold; cursor:pointer;
+    transition:transform .15s, box-shadow .15s;
+  }
+  #menu button:hover { transform:scale(1.05); box-shadow:0 0 22px rgba(74,222,128,0.7); }
+  #menu button.alt { background:#2a2a3a; color:#4ade80; border:2px solid #4ade80; }
+  .divider { color:#555; font-size:12px; margin:10px 0; }
+  .join-row { display:flex; gap:8px; }
+  #menuStatus { color:#4ade80; font-size:14px; min-height:20px; text-align:center; }
+
+  #hud { position:fixed; top:15px; left:15px; color:#fff; font-size:15px;
+    pointer-events:none; text-shadow:0 2px 6px #000; z-index:10; display:none; }
+  #hud .stat { margin-bottom:5px; }
+  #hud .stat span { color:#4ade80; font-weight:bold; }
+
+  #ranking {
+    position:fixed; top:15px; right:15px; width:240px;
+    background:rgba(10,10,20,0.85); border:1px solid rgba(74,222,128,0.35);
+    border-radius:12px; padding:12px; color:#fff; backdrop-filter:blur(10px);
+    z-index:10; font-size:13px; box-shadow:0 4px 25px rgba(0,0,0,0.5); display:none;
+  }
+  #ranking h3 { margin-bottom:10px; color:#4ade80; font-size:12px; letter-spacing:2px; }
+  #ranking ol { list-style:none; }
+  #ranking li { padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.06);
+    display:flex; justify-content:space-between; gap:8px; }
+  #ranking li.you { color:#4ade80; font-weight:bold; }
+  #ranking li .name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
+  #ranking li .mass { color:#aaa; font-variant-numeric:tabular-nums; }
+  #ranking li.you .mass { color:#4ade80; }
+
+  #minimap { position:fixed; bottom:15px; right:15px; width:170px; height:170px;
+    border-radius:12px; background:rgba(10,10,20,0.8);
+    border:1px solid rgba(74,222,128,0.35); z-index:10;
+    box-shadow:0 4px 25px rgba(0,0,0,0.5); display:none; }
+
+  #toast { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+    background:rgba(0,0,0,0.9); color:#4ade80; padding:18px 32px;
+    border-radius:12px; font-size:18px; font-weight:bold; z-index:200;
+    opacity:0; transition:opacity .3s; pointer-events:none; text-align:center;
+    border:2px solid #4ade80; }
+  #toast.show { opacity:1; }
+
+  #roomBadge { position:fixed; bottom:15px; left:15px;
+    background:rgba(10,10,20,0.85); border:1px solid rgba(74,222,128,0.35);
+    padding:10px 16px; border-radius:10px; color:#4ade80; font-size:14px;
+    z-index:10; display:none; font-weight:bold; letter-spacing:2px; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="menu">
+  <h1>AGAR CLONE</h1>
+  <p class="sub">Online · Bots · Minimapa · Ranking</p>
+  <input id="nameInput" type="text" placeholder="Tu nombre" maxlength="14" value="Jugador">
+  <button id="soloBtn">🎮 Jugar Solo</button>
+  <div class="divider">— o jugar online —</div>
+  <button id="hostBtn" class="alt">➕ Crear Sala</button>
+  <div class="join-row">
+    <input id="codeInput" type="text" placeholder="CÓDIGO" maxlength="6">
+    <button id="joinBtn" class="alt">🔗 Unirse</button>
+  </div>
+  <p id="menuStatus"></p>
+</div>
+
+<div id="hud">
+  <div class="stat">Puntos: <span id="score">0</span></div>
+  <div class="stat">Masa: <span id="mass">0</span></div>
+  <div class="stat">Jugadores: <span id="pcount">1</span></div>
+</div>
+
+<div id="ranking">
+  <h3>🏆 RANKING EN VIVO</h3>
+  <ol id="rankList"></ol>
+</div>
+
+<canvas id="minimap"></canvas>
+<div id="toast"></div>
+<div id="roomBadge"></div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+// ================= CONFIG =================
+const WORLD = 7000;
+const FOOD_COUNT = 700;
+const BOT_COUNT = 30;
+const NET_INTERVAL = 1000 / 18;
+const EAT_RATIO = 1.15;
+const PEER_PREFIX = 'agarx2-';
+
+// ================= CANVAS =================
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const miniCanvas = document.getElementById('minimap');
+const miniCtx = miniCanvas.getContext('2d');
+let W, H;
+function resize(){
+  W = canvas.width = innerWidth;
+  H = canvas.height = innerHeight;
+  miniCanvas.width = 170; miniCanvas.height = 170;
+}
+addEventListener('resize', resize); resize();
+
+// ================= INPUT =================
+const mouse = { x: innerWidth/2, y: innerHeight/2 };
+canvas.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+canvas.addEventListener('touchmove', e => {
+  const t = e.touches[0]; mouse.x = t.clientX; mouse.y = t.clientY; e.preventDefault();
+}, { passive:false });
+
+const rand = (a,b) => Math.random()*(b-a)+a;
+const lerp = (a,b,t) => a + (b-a)*t;
+const dist = (a,b) => Math.hypot(a.x-b.x, a.y-b.y);
+
+const BOT_NAMES = ['xX_Dark_Xx','NoobSlayer','RayoVerde','ElTronco','KillerPro','ShadowFury',
+  'DragonFire','Fenix','NinjaPro','Tornado','CobraKai','LoboSol','TigreTop','Serpiente',
+  'Blaze','StormX','Vortex','Ghost','Reaper','Sniper','Toxic','Legend','Boss','Rey','Titan',
+  'Omega','ZeroCool','Neo','MaxPower','Calamar','Pulpo','Shark','Rex','Nova','Phoenix',
+  'Zeus','Hades','Ares','Thor','Loki','Bolt','Flash','Speed','Ultra','Mega','Turbo','Samurai',
+  'Ronin','Viper','Wolf','Frost','Inferno','Zombie','Kraken'];
+const randomBotName = () => BOT_NAMES[Math.floor(Math.random()*BOT_NAMES.length)] + Math.floor(rand(1,999));
+
+// ================= BLOB =================
+class Blob {
+  constructor(x, y, r, color, name, id){
+    this.x = x; this.y = y; this.r = r; this.color = color;
+    this.name = name; this.id = id || 'b'+Math.random();
+    this.vx = 0; this.vy = 0;
+    this.targetX = x; this.targetY = y;
+    this.prevR = r;
+  }
+  get mass(){ return this.r * this.r; }
+  update(dt){
+    const dx = this.targetX - this.x, dy = this.targetY - this.y;
+    const d = Math.hypot(dx, dy);
+    const speed = Math.max(70, 520 / Math.pow(this.r, 0.42));
+    if (d > 2) {
+      const dvx = (dx/d) * speed, dvy = (dy/d) * speed;
+      const k = Math.min(1, dt * 12);
+      this.vx = lerp(this.vx, dvx, k);
+      this.vy = lerp(this.vy, dvy, k);
+    } else {
+      const damp = Math.pow(0.0001, dt);
+      this.vx *= damp; this.vy *= damp;
+    }
+    this.x += this.vx * dt; this.y += this.vy * dt;
+    this.x = Math.max(this.r, Math.min(WORLD - this.r, this.x));
+    this.y = Math.max(this.r, Math.min(WORLD - this.r, this.y));
+  }
+}
+
+// ================= ESTADO =================
+let mode = 'menu';               // 'solo' | 'host' | 'client'
+let myId = 'h';
+let state = { players: new Map(), bots: new Map(), foods: new Map() };
+let cam = { x: WORLD/2, y: WORLD/2 };
+let last = 0, lastNet = 0, lastHud = 0;
+let myPlayer = null;             // solo/host reference
+let score = 0, bestMass = 0;
+
+// IDs
+let foodIdCounter = 1;
+let botIdCounter = 1;
+let nextClientId = 1;
+
+// Net host
+let peer = null;
+let clientConns = new Map();     // shortId -> conn
+let connToShort = new Map();     // conn.peer -> shortId
+let foodAdds = [], foodRemoves = [];
+
+// Net client
+let serverConn = null;
+let myShortId = null;
+
+// ================= HELPERS =================
+function spawnFood(){
+  const f = {
+    id: foodIdCounter++,
+    x: rand(20, WORLD-20), y: rand(20, WORLD-20),
+    r: rand(4, 8),
+    color: `hsl(${Math.random()*360}, 75%, 62%)`
+  };
+  state.foods.set(f.id, f);
+  if (mode === 'host') foodAdds.push({ i:f.id, x:Math.round(f.x), y:Math.round(f.y), r:Math.round(f.r*10)/10, c:f.color });
+  return f;
+}
+function spawnBot(){
+  const b = new Blob(
+    rand(100, WORLD-100), rand(100, WORLD-100),
+    rand(18, 55), `hsl(${Math.random()*360}, 72%, 55%)`,
+    randomBotName(), 'b' + (botIdCounter++)
+  );
+  state.bots.set(b.id, b);
+  return b;
+}
+function removeFood(id){
+  state.foods.delete(id);
+  if (mode === 'host') foodRemoves.push(id);
+}
+function mouseToWorld(){
+  return { x: cam.x + (mouse.x - W/2), y: cam.y + (mouse.y - H/2) };
+}
+
+// ================= SIMULACIÓN (solo/host) =================
+function serverTick(dt){
+  // Jugador local (host/solo)
+  myPlayer.targetX = mouseToWorld().x;
+  myPlayer.targetY = mouseToWorld().y;
+  myPlayer.update(dt);
+
+  // Blobs de clientes
+  for (const [id, conn] of clientConns) {
+    const b = state.players.get(id);
+    if (b) b.update(dt);
+  }
+
+  // Bots con IA
+  for (const b of state.bots.values()) {
+    let tx = b.x, ty = b.y, fleeing = false;
+    for (const other of state.players.values()) {
+      const d = dist(other, b);
+      if (d < b.r + other.r + 220 && other.mass > b.mass * EAT_RATIO) {
+        tx = b.x + (b.x - other.x); ty = b.y + (b.y - other.y); fleeing = true; break;
+      }
+    }
+    if (!fleeing) {
+      let prey = null, preyD = Infinity;
+      for (const other of state.players.values()) {
+        const d = dist(other, b);
+        if (d < 500 && b.mass > other.mass * EAT_RATIO && d < preyD) { prey = other; preyD = d; }
+      }
+      if (prey) { tx = prey.x; ty = prey.y; }
+      else {
+        let best = null, bestD = Infinity;
+        for (const f of state.foods.values()) {
+          const d = (f.x-b.x)**2 + (f.y-b.y)**2;
+          if (d < bestD) { bestD = d; best = f; }
+        }
+        if (best) { tx = best.x; ty = best.y; }
+      }
+    }
+    b.targetX = tx; b.targetY = ty;
+    b.update(dt);
+  }
+
+  // Comida
+  for (const f of [...state.foods.values()]) {
+    let eaten = false;
+    for (const p of state.players.values()) {
+      if (dist(f, p) < p.r) { p.r = Math.sqrt(p.mass + f.r*f.r*1.8); removeFood(f.id); eaten = true; break; }
+    }
+    if (eaten) { spawnFood(); continue; }
+    for (const b of state.bots.values()) {
+      if (dist(f, b) < b.r) { b.r = Math.sqrt(b.mass + f.r*f.r*1.8); removeFood(f.id); spawnFood(); break; }
+    }
+  }
+
+  // Jugadores comen bots / bots comen jugadores
+  for (const [bid, b] of [...state.bots]) {
+    for (const [pid, p] of state.players) {
+      const d = dist(b, p);
+      if (d < p.r && p.mass > b.mass * EAT_RATIO) {
+        p.r = Math.sqrt(p.mass + b.mass);
+        if (pid === 'h') score += Math.round(b.mass/50);
+        state.bots.delete(bid); spawnBot();
+        break;
+      } else if (d < b.r && b.mass > p.mass * EAT_RATIO) {
+        // matar jugador
+        p.r = 30;
+        p.x = rand(WORLD*0.3, WORLD*0.7);
+        p.y = rand(WORLD*0.3, WORLD*0.7);
+        p.vx = p.vy = 0;
+        b.r = Math.sqrt(b.mass + 900);
+        if (pid === 'h') showToast('💀 Te comieron, respawneaste');
+        break;
+      }
+    }
+  }
+
+  // Bots comen bots
+  const botArr = [...state.bots.values()];
+  for (let i=0; i<botArr.length; i++) {
+    for (let j=i+1; j<botArr.length; j++) {
+      const a = botArr[i], b = botArr[j];
+      if (!state.bots.has(a.id) || !state.bots.has(b.id)) continue;
+      const d = dist(a, b);
+      if (d < a.r && a.mass > b.mass * EAT_RATIO) {
+        a.r = Math.sqrt(a.mass + b.mass);
+        state.bots.delete(b.id); spawnBot();
+      } else if (d < b.r && b.mass > a.mass * EAT_RATIO) {
+        b.r = Math.sqrt(b.mass + a.mass);
+        state.bots.delete(a.id); spawnBot();
+        {
+ break;
+      }
+    }
+  }
+
+  // Récord
+  if (myPlayer.mass > bestMass) bestMass = myPlayer.mass;
+}
+
+// ================= RENDER =================
+function render(){
+  ctx.fillStyle = '#0a0a0f';
+  ctx.fillRect(0, 0, W, H);
+
+  const gs = 120;
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
+  const sx0 = Math.floor((cam.x - W/2)/gs)*gs;
+  const sy0 = Math.floor((cam.y - H/2)/gs)*gs;
+  for (let wx = sx0; wx < cam.x + W/2 + gs; wx += gs) {
+    const sx = wx - cam.x + W/2;
+    ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx, H); ctx.stroke();
+  }
+  for (let wy = sy0; wy < cam.y + H/2 + gs; wy += gs)    const sy = wy - cam.y + H/2;
+    ctx.beginPath(); ctx.moveTo(0, sy); ctx.lineTo(W, sy); ctx.stroke();
+  }
+
+  ctx.strokeStyle = 'rgba(255,80,80,0.55)'; ctx.lineWidth = 5;
+  ctx.strokeRect(-cam.x + W/2, -cam.y + H/2, WORLD, WORLD);
+
+  // Comida
+  for (const f of state.foods.values()) {
+    const sx = f.x - cam.x + W/2, sy = f.y - cam.y + H/2;
+    if (sx < -20 || sy < -20 || sx > W+20 || sy > H+20) continue;
+    ctx.beginPath(); ctx.arc(sx, sy, f.r, 0, Math.PI*2);
+    ctx.fillStyle = f.color; ctx.fill();
+  }
+
+  // Blobs
+  const all = [...state.players.values(), ...state.bots.values()].sort((a,b) => a.r - b.r);
+  for (const b of all) {
+    const sx = b.x - cam.x + W/2, sy = b.y - cam.y + H/2;
+    if (sx < -b.r-20 || sy < -b.r-20 || sx > W+b.r+20 || sy > H+b.r+20) continue;
+    ctx.beginPath(); ctx.arc(sx, sy, b.r, 0, Math.PI*2);
+    ctx.fillStyle = b.color; ctx.fill();
+    ctx.lineWidth = Math.max(2, b.r*0.06);
+    ctx.strokeStyle = 'rgba(0,0,0,0.45)'; ctx.stroke();
+    if (b.r > 14) {
+      ctx.fillStyle = '#fff';
+      ctx.font = `bold ${Math.max(11, b.r*0.33)}px sans-serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.strokeStyle = 'rgba(0,0,0,0.85)'; ctx.lineWidth = 3;
+      ctx.strokeText(b.name, sx, sy); ctx.fillText(b.name, sx, sy);
+    }
+  }
+
+  drawMinimap();
+}
+
+function drawMinimap(){
+  const mw = miniCanvas.width, mh = miniCanvas.height;
+  miniCtx.fillStyle = 'rgba(10,10,20,0.9)';
+  miniCtx.fillRect(0, 0, mw, mh);
+  const sx = mw / WORLD, sy = mh / WORLD;
+
+  for (const b of state.bots.values()) {
+    miniCtx.beginPath();
+    miniCtx.arc(b.x*sx, b.y*sy, Math.max(1, b.r*sx*1.4), 0, Math.PI*2);
+    miniCtx.fillStyle = b.color; miniCtx.fill();
+  }
+  for (const [id, p] of state.players) {
+    miniCtx.beginPath();
+    miniCtx.arc(p.x*sx, p.y*sy, Math.max(2.5, p.r*sx*2.5), 0, Math.PI*2);
+    miniCtx.fillStyle = id === myId || id === 'h' ? '#4ade80' : p.color;
+    miniCtx.fill();
+    miniCtx.strokeStyle = '#fff'; miniCtx.lineWidth = 1.5; miniCtx.stroke();
+  }
+
+  miniCtx.strokeStyle = 'rgba(255,255,255,0.35)'; miniCtx.lineWidth = 1;
+  miniCtx.strokeRect((cam.x-W/2)*sx, (cam.y-H/2)*sy, W*sx, H*sy);
+}
+
+// ================= RANKING / HUD =================
+function updateHUD(){
+  const all = [...state.players.values(), ...state.bots.values()]
+    .sort((a,b) => b.mass - a.mass).slice(0, 10);
+  const list = document.getElementById('rankList');
+  list.innerHTML = '';
+  for (let i = 0; i < all.length; i++) {
+    const e = all[i];
+    const isYou = (mode === 'client' && e.id === myId) || (mode !== 'client' && e === myPlayer);
+    const li = document.createElement('li');
+    if (isYou) li.className = 'you';
+    li.innerHTML = `<span class="name">${i+1}. ${e.name}</span><span class="mass">${Math.round(e.mass)}</span>`;
+    list.appendChild(li);
+  }
+  document.getElementById('pcount').textContent = state.players.size;
+  document.getElementById('score').textContent = score;
+  const me = getMyBlob();
+  if (me) document.getElementById('mass').textContent = Math.round(me.mass);
+}
+
+function getMyBlob(){
+  return mode === 'client' ? state.players.get(myId) : myPlayer;
+}
+
+// ================= TOAST =================
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1600);
+}
+
+// ================= LOOP =================
+function loop(now){
+  if (mode === 'menu') return;
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+
+  if (mode === 'solo' || mode === 'host') {
+    serverTick(dt);
+    if (mode === 'host' && now - lastNet > NET_INTERVAL) {
+      broadcast();
+      lastNet = now;
+    }
+    // Cámara
+    const k = 1 - Math.pow(0.002, dt);
+    cam.x = lerp(cam.x, myPlayer.x, k);
+    cam.y = lerp(cam.y, myPlayer.y, k);
+  } else if (mode === 'client') {
+    clientTick(dt, now);
+  }
+
+  render();
+
+  if (now - lastHud > 150) { updateHUD(); lastHud = now; }
+
+  requestAnimationFrame(loop);
+}
+
+// ================= CLIENT TICK =================
+function clientTick(dt, now){
+  const me = state.players.get(myId);
+  if (me) {
+    // Enviar target al host
+    if (now - lastNet > NET_INTERVAL) {
+      const t = mouseToWorld();
+      if (serverConn && serverConn.open) {
+        serverConn.send({ type: 'target', x: Math.round(t.x), y: Math.round(t.y) });
+      }
+      lastNet = now;
+    }
+    // Interpolar posición suavemente
+    const k = 1 - Math.pow(0.001, dt);
+    me.x = lerp(me.x, me.targetX, k);
+    me.y = lerp(me.y, me.targetY, k);
+    me.r = lerp(me.r, me.targetR, k);
+    // Cámara
+    const ck = 1 - Math.pow(0.002, dt);
+    cam.x = lerp(cam.x, me.x, ck);
+    cam.y = lerp(cam.y, me.y, ck);
+  }
+  // Interpolar bots
+  const bk = 1 - Math.pow(0.001, dt);
+  for (const b of state.bots.values()) {
+    b.x = lerp(b.x, b.targetX, bk);
+    b.y = lerp(b.y, b.targetY, bk);
+    b.r = lerp(b.r, b.targetR, bk);
+  }
+  // Interpolar otros jugadores
+  for (const [id, p] of state.players) {
+    if (id === myId) continue;
+    p.x = lerp(p.x, p.targetX, bk);
+    p.y = lerp(p.y, p.targetY, bk);
+    p.r = lerp(p.r, p.targetR, bk);
+  }
+}
+
+// ================= NETWORK: HOST =================
+function broadcast(){
+  if (clientConns.size === 0) { foodAdds = []; foodRemoves = []; return; }
+  const msg = {
+    type: 'state',
+    p: [...state.players.values()].map(b => ({
+      i: b.id, n: b.name, c: b.color,
+      x: Math.round(b.x), y: Math.round(b.y), r: Math.round(b.r*10)/10
+    })),
+    b: [...state.bots.values()].map(b => ({
+      i: b.id, n: b.name, c: b.color,
+      x: Math.round(b.x), y: Math.round(b.y), r: Math.round(b.r*10)/10
+    })),
+    fa: foodAdds,
+    fr: foodRemoves
+  };
+  for (const conn of clientConns.values()) {
+    if (conn.open) conn.send(msg);
+  }
+  foodAdds = []; foodRemoves = [];
+}
+
+function startHost(roomCode){
+  peer = new Peer(PEER_PREFIX + roomCode);
+  peer.on('open', id => {
+    mode = 'host';
+    document.getElementById('menu').style.display = 'none';
+    document.getElementById('hud').style.display = 'block';
+    document.getElementById('ranking').style.display = 'block';
+    document.getElementById('minimap').style.display = 'block';
+    const badge = document.getElementById('roomBadge');
+    badge.style.display = 'block';
+    badge.textContent = '🌐 Sala: ' + roomCode;
+    initHostWorld();
+    last = performance.now();
+    requestAnimationFrame(loop);
+    showToast('Sala creada: ' + roomCode);
+  });
+  peer.on('connection', conn => {
+    conn.on('open', () => {
+      conn.on('data', data => onClientData(conn, data));
+      conn.on('close', () => removeClient(conn));
+    });
+  });
+  peer.on('error', err => {
+    document.getElementById('menuStatus').textContent =
+      err.type === 'unavailable-id' ? 'Ese código ya existe, prueba otro' : 'Error: ' + err.type;
+    if (peer) peer.destroy();
+    peer = null;
+  });
+}
+
+function initHostWorld(){
+  const name = document.getElementById('nameInput').value.trim() || 'Host';
+  state = { players: new Map(), bots: new Map(), foods: new Map() };
+  foodIdCounter = 1; botIdCounter = 1; nextClientId = 1;
+  clientConns.clear(); connToShort.clear();
+  foodAdds = []; foodRemoves = [];
+
+  myPlayer = new Blob(WORLD/2, WORLD/2, 30, '#4ade80', name, 'h');
+  state.players.set('h', myPlayer);
+  for (let i = 0; i < FOOD_COUNT; i++) spawnFood();
+  for (let i = 0; i < BOT_COUNT; i++) spawnBot();
+  cam = { x: myPlayer.x, y: myPlayer.y };
+  score = 0; bestMass = myPlayer.mass;
+  myId = 'h';
+}
+
+function onClientData(conn, msg){
+  if (msg.type === 'hello') {
+    const shortId = 'c' + (nextClientId++);
+    connToShort.set(conn.peer, shortId);
+    clientConns.set(shortId, conn);
+    const blob = new Blob(
+      rand(300, WORLD-300), rand(300, WORLD-300), 30,
+      `hsl(${Math.random()*360}, 70%, 60%)`,
+      (msg.name || 'Anon').slice(0, 14), shortId
+    );
+    blob.targetX = blob.x; blob.targetY = blob.y;
+    state.players.set(shortId, blob);
+    // Enviar bienvenida con ID y comidas
+    const welcome = {
+      type: 'welcome',
+      id: shortId,
+      food: [...state.foods.values()].map(f => ({
+        i: f.id, x: Math.round(f.x), y: Math.round(f.y),
+        r: Math.round(f.r*10)/10, c: f.color
+      }))
+    };
+    conn.send(welcome);
+    showToast('👋 ' + blob.name + ' se unió');
+  } else if (msg.type === 'target') {
+    const id = connToShort.get(conn.peer);
+    const b = state.players.get(id);
+    if (b) { b.targetX = msg.x; b.targetY = msg.y; }
+  }
+}
+
+function removeClient(conn){
+  const id = connToShort.get(conn.peer);
+  if (id) {
+    const b = state.players.get(id);
+    if (b) showToast('👋 ' + b.name + ' salió');
+    state.players.delete(id);
+    clientConns.delete(id);
+    connToShort.delete(conn.peer);
+  }
+}
+
+// ================= NETWORK: CLIENT =================
+function startClient(roomCode, name){
+  peer = new Peer();
+  peer.on('open', () => {
+    serverConn = peer.connect(PEER_PREFIX + roomCode, { reliable: true });
+    serverConn.on('open', () => {
+      serverConn.send({ type: 'hello', name });
+    });
+    serverConn.on('data', d => onServerData(d));
+    serverConn.on('close', () => {
+      showToast('❌ Host desconectado');
+      setTimeout(() => location.reload(), 1800);
+    });
+  });
+  peer.on('error', err => {
+    document.getElementById('menuStatus').textContent =
+      err.type === 'peer-unavailable' ? 'Sala no encontrada' : 'Error: ' + err.type;
+    if (peer) peer.destroy();
+    peer = null;
+  });
+}
+
+function onServerData(msg){
+  if (msg.type === 'welcome') {
+    myShortId = msg.id;
+    myId = msg.id;
+    state = { players: new Map(), bots: new Map(), foods: new Map() };
+    for (const f of msg.food) {
+      state.foods.set(f.i, { id: f.i, x: f.x, y: f.y, r: f.r, color: f.c });
+    }
+    mode = 'client';
+    document.getElementById('menu').style.display = 'none';
+    document.getElementById('hud').style.display = 'block';
+    document.getElementById('ranking').style.display = 'block';
+    document.getElementById('minimap').style.display = 'block';
+    last = performance.now();
+    requestAnimationFrame(loop);
+    showToast('✅ Conectado');
+  } else if (msg.type === 'state') {
+    // Jugadores
+    const seen = new Set();
+    for (const p of msg.p) {
+      seen.add(p.i);
+      let ex = state.players.get(p.i);
+      if (ex) {
+        ex.targetX = p.x; ex.targetY = p.y; ex.targetR = p.r;
+        ex.name = p.n; ex.color = p.c;
+      } else {
+        const nb = { id: p.i, name: p.n, color: p.c, x: p.x, y: p.y, r: p.r,
+                     targetX: p.x, targetY: p.y, targetR: p.r };
+        state.players.set(p.i, nb);
+      }
+    }
+    for (const id of [...state.players.keys()]) {
+      if (!seen.has(id)) state.players.delete(id);
+    }
+    // Bots
+    const seenB = new Set();
+    for (const b of msg.b) {
+      seenB.add(b.i);
+      let ex = state.bots.get(b.i);
+      if (ex) {
+        ex.targetX = b.x; ex.targetY = b.y; ex.targetR = b.r;
+        ex.name = b.n; ex.color = b.c;
+      } else {
+        state.bots.set(b.i, { id: b.i, name: b.n, color: b.c, x: b.x, y: b.y, r: b.r,
+                              targetX: b.x, targetY: b.y, targetR: b.r });
+      }
+    }
+    for (const id of [...state.bots.keys()]) {
+      if (!seenB.has(id)) state.bots.delete(id);
+    }
+    // Comida delta
+    if (msg.fa) for (const f of msg.fa) {
+      state.foods.set(f.i, { id: f.i, x: f.x, y: f.y, r: f.r, color: f.c });
+    }
+    if (msg.fr) for (const id of msg.fr) state.foods.delete(id);
+  }
+}
+
+// ================= ENTRY POINTS =================
+function startSolo(){
+  const name = document.getElementById('nameInput').value.trim() || 'Jugador';
+  mode = 'solo';
+  state = { players: new Map(), bots: new Map(), foods: new Map() };
+  foodIdCounter = 1; botIdCounter = 1;
+  myPlayer = new Blob(WORLD/2, WORLD/2, 30, '#4ade80', name, 'h');
+  state.players.set('h', myPlayer);
+  for (let i = 0; i < FOOD_COUNT; i++) spawnFood();
+  for (let i = 0; i < BOT_COUNT; i++) spawnBot();
+  cam = { x: myPlayer.x, y: myPlayer.y };
+  score = 0; bestMass = myPlayer.mass;
+  myId = 'h';
+  document.getElementById('menu').style.display = 'none';
+  document.getElementById('hud').style.display = 'block';
+  document.getElementById('ranking').style.display = 'block';
+  document.getElementById('minimap').style.display = 'block';
+  last = performance.now();
+  requestAnimationFrame(loop);
+}
+
+function generateCode(){
+  return Math.random().toString(36).substring(2, 7).toUpperCase();
+}
+
+document.getElementById('soloBtn').onclick = startSolo;
+
+document.getElementById('hostBtn').onclick = () => {
+  const code = generateCode();
+  document.getElementById('menuStatus').textContent = 'Conectando...';
+  startHost(code);
+};
+
+document.getElementById('joinBtn').onclick = () => {
+  const code = document.getElementById('codeInput').value.trim().toUpperCase();
+  if (code.length < 3) {
+    document.getElementById('menuStatus').textContent = 'Escribe un código válido';
+    return;
+  }
+  const name = document.getElementById('nameInput').value.trim() || 'Jugador';
+  document.getElementById('menuStatus').textContent = 'Conectando...';
+  startClient(code, name);
+};
+
+document.getElementById('codeInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('joinBtn').click();
+});
+</script>
+</body>
+</html>
